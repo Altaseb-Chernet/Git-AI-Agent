@@ -2,21 +2,21 @@ import tkinter as tk
 from tkinter import scrolledtext, filedialog
 import os
 from automation_engine import AutomationEngine
-from git_tools import get_branch, get_status, get_status_short, get_log_structured
+from git_tools import get_branch, get_status, get_status_short, get_log_structured, get_git_config_name, get_git_config_email
 
-# Color Palette (GitHub Dark High Contrast inspired)
-BG_COLOR = "#0d1117"
-SIDEBAR_COLOR = "#010409"
-TEXT_COLOR = "#c9d1d9"
-ACCENT_COLOR = "#58a6ff" # Blue
-SUCCESS_COLOR = "#3fb950" # Green
-WARN_COLOR = "#d29922" # Yellow
-ERROR_COLOR = "#f85149" # Red
-INPUT_BG = "#21262d"
+# Color Palette (Premium Dark Slate)
+BG_COLOR = "#161b22"
+SIDEBAR_COLOR = "#0d1117"
+TEXT_COLOR = "#e6edf3"
+ACCENT_COLOR = "#2f81f7" # Vibrant Indigo Blue
+SUCCESS_COLOR = "#3fb950" 
+WARN_COLOR = "#d29922" 
+ERROR_COLOR = "#f85149" 
+INPUT_BG = "#010409"
 GRAPH_BG = "#0d1117"
-NODE_COLOR = "#d2a8ff" # Purple nodes
+NODE_COLOR = "#ab7df8" 
 LINE_COLOR = "#30363d" 
-
+BUTTON_COLOR = "#21262d"
 engine = AutomationEngine()
 
 def open_folder():
@@ -36,7 +36,13 @@ def run_command(event=None):
     
     try:
         output = engine.process(user_text)
-        display_output(f"AI: {output}", "ai")
+        if output == "__SIGNAL_CLEAR_CHAT__":
+            output_box.config(state=tk.NORMAL)
+            output_box.delete('1.0', tk.END)
+            output_box.config(state=tk.DISABLED)
+            display_output("Chat cleared.", "system")
+        else:
+            display_output(f"AI: {output}", "ai")
     except Exception as e:
         import traceback
         display_output(f"Internal Error Caught:\n{traceback.format_exc()}", "system")
@@ -79,6 +85,11 @@ def refresh_status():
     # Update visual graph
     log_data = get_log_structured()
     draw_graph(log_data)
+    
+    # Update User Info
+    user_name = get_git_config_name()
+    user_email = get_git_config_email()
+    user_label.config(text=f"👤 User: {user_name if user_name else 'Not set'}\n📧 {user_email if user_email else 'Not set'}")
     
     timer_id = root.after(3000, refresh_status)
 
@@ -198,11 +209,16 @@ sidebar = tk.Frame(main_frame, bg=SIDEBAR_COLOR, width=220, padx=15, pady=20)
 sidebar.pack(side=tk.LEFT, fill=tk.Y)
 tk.Label(sidebar, text="Git Status", font=bold_font, bg=SIDEBAR_COLOR, fg=ACCENT_COLOR).pack(anchor="w", pady=(0, 15))
 
-tk.Button(sidebar, text="📂 Open Repo", command=open_folder, bg=INPUT_BG, fg=TEXT_COLOR, font=normal_font, bd=0, activebackground=LINE_COLOR).pack(anchor="w", pady=(0, 15), fill=tk.X)
+tk.Button(sidebar, text="📂 Open Repo", command=open_folder, bg=BUTTON_COLOR, fg=TEXT_COLOR, font=normal_font, bd=0, activebackground=LINE_COLOR).pack(anchor="w", pady=(0, 15), fill=tk.X)
 
 branch_label = tk.Label(sidebar, text="🌿 Branch: ...", font=normal_font, bg=SIDEBAR_COLOR, fg=TEXT_COLOR)
 branch_label.pack(anchor="w", pady=5)
 tk.Frame(sidebar, height=2, bg=INPUT_BG).pack(fill=tk.X, pady=15)
+
+user_label = tk.Label(sidebar, text="👤 User: ...", font=("Consolas", 10), bg=SIDEBAR_COLOR, fg=TEXT_COLOR, justify=tk.LEFT)
+user_label.pack(anchor="w", pady=5)
+tk.Frame(sidebar, height=2, bg=INPUT_BG).pack(fill=tk.X, pady=15)
+
 stats_label = tk.Label(sidebar, text="Loading...", font=normal_font, bg=SIDEBAR_COLOR, fg=TEXT_COLOR, justify=tk.LEFT)
 stats_label.pack(anchor="w", pady=5)
 
@@ -222,7 +238,7 @@ input_frame.pack(fill=tk.X)
 entry = tk.Entry(input_frame, bg=INPUT_BG, fg=TEXT_COLOR, font=normal_font, bd=0, insertbackground=TEXT_COLOR)
 entry.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, ipady=8, padx=(0, 10))
 entry.bind("<Return>", run_command)
-tk.Button(input_frame, text="Send", command=run_command, bg=ACCENT_COLOR, fg=BG_COLOR, font=("Consolas", 11, "bold"), bd=0, activebackground=SUCCESS_COLOR, padx=15).pack(side=tk.RIGHT, fill=tk.Y)
+tk.Button(input_frame, text="Send", command=run_command, bg=ACCENT_COLOR, fg="#ffffff", font=("Consolas", 11, "bold"), bd=0, activebackground=SUCCESS_COLOR, padx=15).pack(side=tk.RIGHT, fill=tk.Y)
 
 # 3. Visual Graph Area (Right)
 graph_frame = tk.Frame(main_frame, bg=GRAPH_BG, width=400, padx=10, pady=20)

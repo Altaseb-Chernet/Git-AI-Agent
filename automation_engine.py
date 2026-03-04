@@ -25,6 +25,7 @@ class AutomationEngine:
         self.state = "idle"
         self.temp_msg = ""
         self.temp_branch = ""
+        self.temp_name = ""
 
     def process(self, user_input):
         user_input_lower = user_input.lower().strip()
@@ -132,6 +133,18 @@ class AutomationEngine:
         # 7. Undo Intent
         elif any(phrase in user_input_lower for phrase in ["undo", "oops", "revert", "go back", "made a mistake"]):
             intent = "undo"
+
+        # 8. User Config Intent
+        elif any(word in user_input_lower for word in ["config", "user info", "who am i", "set my name", "git user"]):
+            intent = "config"
+
+        # 9. Help Intent
+        elif user_input_lower in ["help", "/help", "what can you do", "commands"]:
+            intent = "help"
+
+        # 10. Clear Intent
+        elif user_input_lower in ["clear", "cls"]:
+            intent = "clear"
             
         # --- State Machine for Missing Info ---
         if self.state == "awaiting_switch_branch_name":
@@ -166,6 +179,17 @@ class AutomationEngine:
                  return f"⚠️ Merge Conflict with {branch}! Please check your files, resolve, and reply 'resolved'."
             self.state = "idle"
             return f"Merged {branch}.\n{pull_res}"
+
+        if self.state == "awaiting_config_name":
+            self.temp_name = user_input.strip()
+            self.state = "awaiting_config_email"
+            return f"Got it, {self.temp_name}. Now, what is your email address?"
+
+        if self.state == "awaiting_config_email":
+            email = user_input.strip()
+            self.state = "idle"
+            git_config(self.temp_name, email)
+            return f"Perfect! I've set your Git user to:\nName: {self.temp_name}\nEmail: {email}"
 
         # --- Main routing based on Intent ---
         # Common Pre-check: Are we even in a git repo?
@@ -252,4 +276,31 @@ class AutomationEngine:
                 return stash_pop()
             return stash()
 
-        return "I didn't quite catch that. You can ask me to 'upload my code', 'change branch', 'create a new branch', or 'show status'."
+        if intent == "config":
+            name = get_git_config_name()
+            email = get_git_config_email()
+            msg = f"Your current Git config is:\nName: {name if name else 'Not set'}\nEmail: {email if email else 'Not set'}"
+            if "set" in user_input_lower or "change" in user_input_lower or not name:
+                self.state = "awaiting_config_name"
+                return msg + "\n\nWhat would you like to set your name to?"
+            return msg
+
+        if intent == "help":
+            return """🚀 **Git AI Agent Help Menu**
+
+Here are the commands I currently support:
+- **"upload my code" / "sync"**: One-shot flow to stage, commit, pull, and push.
+- **"checkout [branch]" / "switch to [branch]"**: Change your current branch.
+- **"create branch [name]"**: Make a new local branch.
+- **"merge [branch]"**: Merge another branch into your current one.
+- **"undo" / "oops"**: Safely revert your last commit (soft reset).
+- **"status"**: See what files have changed.
+- **"config"**: View or set your Git username and email.
+- **"clear" / "cls"**: Wipe the chat history.
+
+*Tip: You can also click the nodes in the Visual Graph to time-travel!*"""
+
+        if intent == "clear":
+            return "__SIGNAL_CLEAR_CHAT__"
+
+        return "I didn't quite catch that. You can ask me to 'upload my code', 'change branch', 'create a new branch', 'show status', 'config user', or type 'help' for all commands."

@@ -70,6 +70,12 @@ def git_config(name, email):
     run_git_command(["config", "user.name", name])
     return run_git_command(["config", "user.email", email])
 
+def get_git_config_name():
+    return run_git_command(["config", "user.name"]).strip()
+
+def get_git_config_email():
+    return run_git_command(["config", "user.email"]).strip()
+
 def get_diff():
     return run_git_command(["diff", "--cached"])
 
