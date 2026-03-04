@@ -1,5 +1,6 @@
 import tkinter as tk
-from tkinter import scrolledtext
+from tkinter import scrolledtext, filedialog
+import os
 from automation_engine import AutomationEngine
 from git_tools import get_branch, get_status, get_status_short, get_log_structured
 
@@ -17,6 +18,13 @@ NODE_COLOR = "#d2a8ff" # Purple nodes
 LINE_COLOR = "#30363d" 
 
 engine = AutomationEngine()
+
+def open_folder():
+    folder = filedialog.askdirectory()
+    if folder:
+        os.chdir(folder)
+        display_output(f"Switched repository to: {folder}", "system")
+        refresh_status()
 
 def run_command(event=None):
     user_text = entry.get()
@@ -137,7 +145,7 @@ def draw_graph(log_data):
         node_col = ACCENT_COLOR if "HEAD" in dec else SUCCESS_COLOR if dec else NODE_COLOR
         
         # Node
-        graph_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill=node_col, outline=BG_COLOR, width=2)
+        graph_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill=node_col, outline=BG_COLOR, width=2, tags=(h, "node"))
         
         text_x = cx + 25
         # Decorations (Branch names, Tags, HEAD)
@@ -150,10 +158,20 @@ def draw_graph(log_data):
         
         # Commit hash and message
         msg = c["msg"]
-        trunc_msg = msg[:35] + "..." if len(msg) > 35 else msg
+        trunc_msg = msg[:75] + "..." if len(msg) > 75 else msg
         graph_canvas.create_text(text_x, cy, text=f"{h} {trunc_msg}", fill=TEXT_COLOR, font=("Consolas", 10), anchor="w")
         
     graph_canvas.config(scrollregion=(0, 0, 800, current_y + 50))
+
+def on_node_click(event):
+    item = graph_canvas.find_withtag("current")
+    if not item: return
+    tags = graph_canvas.gettags(item[0])
+    if tags:
+        h = tags[0]
+        entry.delete(0, tk.END)
+        entry.insert(0, f"switch to {h}")
+        run_command()
 
 def display_output(text, tag=None):
     output_box.config(state=tk.NORMAL)
@@ -179,6 +197,9 @@ main_frame.pack(fill=tk.BOTH, expand=True)
 sidebar = tk.Frame(main_frame, bg=SIDEBAR_COLOR, width=220, padx=15, pady=20)
 sidebar.pack(side=tk.LEFT, fill=tk.Y)
 tk.Label(sidebar, text="Git Status", font=bold_font, bg=SIDEBAR_COLOR, fg=ACCENT_COLOR).pack(anchor="w", pady=(0, 15))
+
+tk.Button(sidebar, text="📂 Open Repo", command=open_folder, bg=INPUT_BG, fg=TEXT_COLOR, font=normal_font, bd=0, activebackground=LINE_COLOR).pack(anchor="w", pady=(0, 15), fill=tk.X)
+
 branch_label = tk.Label(sidebar, text="🌿 Branch: ...", font=normal_font, bg=SIDEBAR_COLOR, fg=TEXT_COLOR)
 branch_label.pack(anchor="w", pady=5)
 tk.Frame(sidebar, height=2, bg=INPUT_BG).pack(fill=tk.X, pady=15)
@@ -210,6 +231,11 @@ tk.Label(graph_frame, text="Visual Graph", font=bold_font, bg=GRAPH_BG, fg=NODE_
 
 graph_canvas = tk.Canvas(graph_frame, bg=GRAPH_BG, highlightthickness=0)
 graph_canvas.pack(fill=tk.BOTH, expand=True)
+
+# Bind the 'node' tag to the interactive click function
+graph_canvas.tag_bind("node", "<Button-1>", on_node_click)
+graph_canvas.tag_bind("node", "<Enter>", lambda e: graph_canvas.config(cursor="hand2"))
+graph_canvas.tag_bind("node", "<Leave>", lambda e: graph_canvas.config(cursor=""))
 
 display_output("Welcome! Need to push your code? Just type 'upload'.", "system")
 refresh_status()

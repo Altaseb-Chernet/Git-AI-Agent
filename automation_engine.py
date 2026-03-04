@@ -129,6 +129,10 @@ class AutomationEngine:
         elif "merge" in user_input_lower:
             intent = "merge"
             
+        # 7. Undo Intent
+        elif any(phrase in user_input_lower for phrase in ["undo", "oops", "revert", "go back", "made a mistake"]):
+            intent = "undo"
+            
         # --- State Machine for Missing Info ---
         if self.state == "awaiting_switch_branch_name":
             name = user_input.strip()

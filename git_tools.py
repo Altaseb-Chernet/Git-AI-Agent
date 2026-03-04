@@ -100,3 +100,9 @@ def stash_pop():
 def pull():
     branch = get_branch().strip()
     return run_git_command(["pull", "origin", branch])
+
+def reset_soft(target="HEAD~1"):
+    return run_git_command(["reset", "--soft", target])
+
+def reset_hard(target="HEAD~1"):
+    return run_git_command(["reset", "--hard", target])
