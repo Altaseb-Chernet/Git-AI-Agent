@@ -1,19 +1,67 @@
 from git_tools import *
+import re
+
+def generate_commit_message():
+    diff = get_untracked_diff() + "\n" + get_diff()
+    if not diff.strip():
+        return "Clean up code and formatting"
+    
+    # Heuristic AI generation
+    added_files = re.findall(r"a/(.+) b/", diff)
+    if not added_files:
+        return "Auto commit: Updates to project"
+        
+    unique_files = list(set(added_files))
+    if len(unique_files) == 1:
+        return f"Update {unique_files[0]} logic and fixes"
+    elif len(unique_files) <= 3:
+        files_str = ", ".join(unique_files)
+        return f"Modify {files_str} with targeted changes"
+    else:
+        return f"Refactor multiple files including {unique_files[0]} and {unique_files[1]}"
 
 class AutomationEngine:
     def __init__(self):
         self.state = "idle"
+        self.temp_msg = ""
+        self.temp_branch = ""
 
     def process(self, user_input):
         user_input_lower = user_input.lower().strip()
         
-        # Check if we are in a special state
+        # --- Advanced State Machine Flows ---
+        if self.state == "sync_confirm":
+            if user_input_lower in ["y", "yes"]:
+                add_all()
+                res_commit = commit(self.temp_msg)
+                
+                # Check for conflicts during pull
+                pull_res = pull()
+                if "CONFLICT" in pull_res or "Automatic merge failed" in pull_res:
+                    self.state = "conflict_wait"
+                    return "⚠️ Merge Conflict Detected! I've paused the flow. Please check your files and resolve the conflicts manually. Reply 'resolved' when you are done."
+                
+                res = push()
+                self.state = "idle"
+                return f"Sync complete! 🚀\n{res}"
+            else:
+                self.state = "idle"
+                return "Sync cancelled."
+                
+        if self.state == "conflict_wait":
+            if user_input_lower == "resolved":
+                add_all()
+                commit("Resolve merge conflicts")
+                res = push()
+                self.state = "idle"
+                return f"Conflicts resolved and pushed! 🚀\n{res}"
+            return "Still waiting for you to resolve conflicts. Type 'resolved' when done."
+
         if self.state == "awaiting_remote_url":
             # Assume the user provided the URL
             url = user_input.strip()
             if not url.startswith("http") and not url.startswith("git@"):
                 return "That doesn't look like a valid Git URL. Please provide the URL for your remote repository."
-            
             # Add remote and push
             add_remote(url)
             self.state = "idle"
@@ -22,7 +70,7 @@ class AutomationEngine:
             
         # Upload specific flows (Guided Process)
         if self.state == "upload_confirm_init":
-            if user_input_lower == "y" or user_input_lower == "yes":
+            if user_input_lower in ["y", "yes"]:
                 init_repo()
                 add_all()
                 commit("Initial commit via AI Upload")
@@ -33,9 +81,9 @@ class AutomationEngine:
                 return "Upload cancelled."
                 
         if self.state == "upload_confirm_push":
-            if user_input_lower == "y" or user_input_lower == "yes":
+            if user_input_lower in ["y", "yes"]:
                 add_all()
-                commit("Updates via AI Upload")
+                commit(self.temp_msg)
                 res = push()
                 self.state = "idle"
                 return f"Push complete! 🚀\n{res}"
@@ -53,59 +101,151 @@ class AutomationEngine:
             self.state = "idle"
             return f"Remote added successfully and code pushed! 🚀\n{res}"
 
+        # --- Main routing ---
+        # --- Natural Language Intent Parsing ---
+        intent = "unknown"
+        
+        # 1. Upload/Sync Intent
+        if any(word in user_input_lower for word in ["upload", "sync", "save", "push my code", "save my changes"]):
+            intent = "upload"
+            
+        # 2. Status Intent
+        elif any(word in user_input_lower for word in ["status", "what is happening", "what changed"]):
+            intent = "status"
+            
+        # 3. Commit Intent
+        elif any(word in user_input_lower for word in ["commit", "record changes"]):
+            intent = "commit"
+            
+        # 4. Create Branch Intent
+        elif any(phrase in user_input_lower for phrase in ["create branch", "new branch", "make a branch"]):
+            intent = "create_branch"
+            
+        # 5. Switch Branch Intent
+        elif any(phrase in user_input_lower for phrase in ["switch branch", "change branch", "change the branch", "checkout", "switch to"]):
+            intent = "switch_branch"
+            
+        # 6. Merge Intent
+        elif "merge" in user_input_lower:
+            intent = "merge"
+            
+        # --- State Machine for Missing Info ---
+        if self.state == "awaiting_switch_branch_name":
+            name = user_input.strip()
+            res = checkout(name)
+            if "error:" in res and "did not match any file(s)" in res:
+                 self.temp_branch = name
+                 self.state = "confirm_create_missing_branch"
+                 return f"The branch '{name}' does not exist yet. Would you like me to create it for you? (y/n)"
+            self.state = "idle"
+            return f"Switched to branch '{name}'."
+            
+        if self.state == "confirm_create_missing_branch":
+            if user_input_lower in ["y", "yes"]:
+                res = create_branch(self.temp_branch)
+                self.state = "idle"
+                return f"Created and switched to new branch '{self.temp_branch}'!"
+            self.state = "idle"
+            return "Branch creation cancelled."
+            
+        if self.state == "awaiting_create_branch_name":
+            name = user_input.strip().replace(" ", "-") # Safely format branch names
+            self.state = "idle"
+            create_branch(name)
+            return f"Created and switched to new branch '{name}'!"
+            
+        if self.state == "awaiting_merge_branch_name":
+            branch = user_input.strip()
+            pull_res = merge(branch)
+            if "CONFLICT" in pull_res or "Automatic merge failed" in pull_res:
+                 self.state = "conflict_wait"
+                 return f"⚠️ Merge Conflict with {branch}! Please check your files, resolve, and reply 'resolved'."
+            self.state = "idle"
+            return f"Merged {branch}.\n{pull_res}"
+
+        # --- Main routing based on Intent ---
         # Common Pre-check: Are we even in a git repo?
         status_check = get_status()
         is_git_repo = "fatal: not a git repository" not in status_check.lower()
         
         if not is_git_repo:
-            if "init" in user_input_lower:
+            if "init" in user_input_lower or "yes" in user_input_lower:
                 return init_repo()
-            elif "upload" in user_input_lower:
+            elif intent == "upload":
                 self.state = "upload_confirm_init"
                 return "I see this isn't a Git repository yet. I will step-by-step: initialize it, add all files, commit them, and prompt for a remote URL. Proceed? (y/n)"
             else:
-                return "This folder is currently not a Git repository. Would you like to initialize one? Just type 'init'."
-                
-        # Normal command processing
-        if "upload" in user_input_lower:
+                return "This folder is currently not a Git repository. Would you like to initialize one? Just type 'init' or 'yes'."
+
+        if intent == "upload":
             remotes = get_remotes()
             if not remotes.strip():
-                # No remote
-                add_all()
-                commit("Auto commit for upload")
+                self.temp_msg = generate_commit_message()
                 self.state = "upload_get_remote"
-                return "I've detected changes but no remote repository. I've staged and committed them. Please paste your GitHub URL now, and I'll push them for you."
+                return f"I generated this commit message for you:\n\n'{self.temp_msg}'\n\nNo remote found. Paste your remote GitHub URL to continue."
             else:
-                # Has remote
-                self.state = "upload_confirm_push"
-                return "I will stage all files, create a commit, and push to your connected remote. Proceed? (y/n)"
-        if "status" in user_input_lower:
+                self.temp_msg = generate_commit_message()
+                self.state = "sync_confirm"
+                return f"I generated this commit message for your changes:\n\n'{self.temp_msg}'\n\nI will now stage, commit, pull, and push. Proceed? (y/n)"
+
+        if intent == "status":
             return status_check
 
-        if "commit" in user_input_lower:
+        if intent == "commit":
+            self.temp_msg = generate_commit_message()
             add_all()
-            return commit("Auto commit by AI Agent")
+            return commit(self.temp_msg)
 
-        if "push" in user_input_lower:
-            # Check if there's a remote
-            remotes = get_remotes()
-            if not remotes.strip():
-                # No remote found, enter state machine
-                self.state = "awaiting_remote_url"
-                
-                # We should also commit any pending changes first as a courtesy
-                add_all()
-                commit("Auto commit before push")
-                
-                return "There is no remote repository configured for this project. Please paste your remote Git URL here to connect it."
-            else:
-                return push()
-
-        if "create branch" in user_input_lower:
+        if intent == "create_branch":
             words = user_input_lower.split()
-            if len(words) >= 3:
-                name = words[-1]
-                return create_branch(name)
-            return "Please provide a branch name, e.g., 'create branch dev'."
+            stop_words = ["i", "want", "to", "create", "make", "a", "new", "branch", "called", "named"]
+            potential_names = [w for w in words if w not in stop_words]
+            
+            if len(potential_names) >= 1:
+                name = "-".join(potential_names)
+                create_branch(name)
+                return f"Created and switched to new branch '{name}'."
+            
+            # If we couldn't easily parse it, ask conversationally
+            self.state = "awaiting_create_branch_name"
+            return "What would you like to name the new branch? (Type the name below)"
 
-        return "Command not recognized. Try 'status', 'commit', 'push', 'create branch [name]', or 'init'."
+        if intent == "switch_branch":
+            words = user_input_lower.split()
+            stop_words = ["i", "want", "to", "change", "the", "switch", "checkout", "branch", "please", "can", "you"]
+            potential_names = [w for w in words if w not in stop_words]
+            
+            if len(potential_names) >= 1:
+                name = "-".join(potential_names)
+                res = checkout(name)
+                if "error:" in res and "did not match any file(s)" in res:
+                    self.temp_branch = name
+                    self.state = "confirm_create_missing_branch"
+                    return f"The branch '{name}' does not exist yet. Would you like me to create it for you? (y/n)"
+                return f"Switched to branch '{name}'."
+                    
+            self.state = "awaiting_switch_branch_name"
+            return "Which branch would you like to switch to?"
+
+        if intent == "merge":
+            words = user_input_lower.split()
+            if "merge" in words:
+                idx = words.index("merge")
+                if idx + 1 < len(words):
+                    branch = words[idx + 1]
+                    if branch != "with" and branch != "branch":
+                        pull_res = merge(branch)
+                        if "CONFLICT" in pull_res:
+                            self.state = "conflict_wait"
+                            return f"⚠️ Merge Conflict with {branch}! Please check your files, resolve, and reply 'resolved'."
+                        return pull_res
+                        
+            self.state = "awaiting_merge_branch_name"
+            return "Which branch do you want to merge into this one?"
+
+        if "stash" in user_input_lower:
+            if "pop" in user_input_lower:
+                return stash_pop()
+            return stash()
+
+        return "I didn't quite catch that. You can ask me to 'upload my code', 'change branch', 'create a new branch', or 'show status'."

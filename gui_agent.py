@@ -3,18 +3,18 @@ from tkinter import scrolledtext
 from automation_engine import AutomationEngine
 from git_tools import get_branch, get_status, get_status_short, get_log_structured
 
-# Color Palette (Catppuccin Mocha inspired)
-BG_COLOR = "#1e1e2e"
-SIDEBAR_COLOR = "#181825"
-TEXT_COLOR = "#cdd6f4"
-ACCENT_COLOR = "#89b4fa" # Blue
-SUCCESS_COLOR = "#a6e3a1" # Green
-WARN_COLOR = "#f9e2af" # Yellow
-ERROR_COLOR = "#f38ba8" # Red
-INPUT_BG = "#313244"
-GRAPH_BG = "#11111b"
-NODE_COLOR = "#f5c2e7" # Pink nodes
-LINE_COLOR = "#585b70" 
+# Color Palette (GitHub Dark High Contrast inspired)
+BG_COLOR = "#0d1117"
+SIDEBAR_COLOR = "#010409"
+TEXT_COLOR = "#c9d1d9"
+ACCENT_COLOR = "#58a6ff" # Blue
+SUCCESS_COLOR = "#3fb950" # Green
+WARN_COLOR = "#d29922" # Yellow
+ERROR_COLOR = "#f85149" # Red
+INPUT_BG = "#21262d"
+GRAPH_BG = "#0d1117"
+NODE_COLOR = "#d2a8ff" # Purple nodes
+LINE_COLOR = "#30363d" 
 
 engine = AutomationEngine()
 
@@ -23,20 +23,34 @@ def run_command(event=None):
     if not user_text.strip(): return
     
     display_output(f"You: {user_text}", "user")
-    output = engine.process(user_text)
-    display_output(f"AI: {output}", "ai")
     entry.delete(0, tk.END)
-    refresh_status()
+    root.update() # Force UI paint immediately
+    
+    try:
+        output = engine.process(user_text)
+        display_output(f"AI: {output}", "ai")
+    except Exception as e:
+        import traceback
+        display_output(f"Internal Error Caught:\n{traceback.format_exc()}", "system")
+        
+    refresh_status() # Instantly redraw the graph and stats on command finish
+
+
+timer_id = None
 
 def refresh_status():
+    global timer_id
+    if timer_id:
+        root.after_cancel(timer_id)
+        
     status_short = get_status_short()
     
     # Graceful handling if not a repo
-    if "fatal: not a git repository" in status_short.lower() or status_short == "":
+    if status_short and "fatal: not a git repository" in status_short.lower():
         branch_label.config(text="🌿 Branch: None")
         stats_label.config(text="Not a Git Repository")
         draw_graph("")  # Clear graph
-        root.after(3000, refresh_status)
+        timer_id = root.after(3000, refresh_status)
         return
         
     branch = get_branch().strip()
@@ -58,7 +72,7 @@ def refresh_status():
     log_data = get_log_structured()
     draw_graph(log_data)
     
-    root.after(3000, refresh_status)
+    timer_id = root.after(3000, refresh_status)
 
 def draw_graph(log_data):
     graph_canvas.delete("all")
@@ -67,27 +81,79 @@ def draw_graph(log_data):
         return
         
     lines = log_data.strip().split("\n")
-    y_offset = 40
-    x_offset = 40
-    radius = 12
-    
-    # Draw vertical line connecting nodes
-    if len(lines) > 1:
-        graph_canvas.create_line(x_offset, y_offset, x_offset, y_offset + (len(lines)-1)*40, fill=LINE_COLOR, width=3)
-        
-    for i, line in enumerate(lines):
+    commits = []
+    for line in lines:
         parts = line.split("|")
-        if len(parts) >= 3:
-            hash_val, parents, msg = parts[0], parts[1], "|".join(parts[2:])
+        if len(parts) >= 4:
+            commits.append({
+                "hash": parts[0].strip(),
+                "parents": parts[1].strip().split(),
+                "decorations": parts[2].strip(),
+                "msg": "|".join(parts[3:]).strip()
+            })
+
+    # Assign coordinates for parallel branching
+    coords = {}
+    current_y = 40
+    y_spacing = 50
+    x_spacing = 40
+    next_col = 0
+    assigned_cols = {}
+    
+    for c in commits:
+        h = c["hash"]
+        if h not in assigned_cols:
+            assigned_cols[h] = next_col
+            next_col += 1
             
-            # Draw Circle
-            graph_canvas.create_oval(x_offset-radius, y_offset-radius, x_offset+radius, y_offset+radius, fill=NODE_COLOR, outline=BG_COLOR, width=2)
-            
-            # Add text (hash + trunc msg)
-            trunc_msg = msg[:20] + "..." if len(msg) > 20 else msg
-            graph_canvas.create_text(x_offset + 30, y_offset, text=f"{hash_val} {trunc_msg}", fill=TEXT_COLOR, font=("Consolas", 10), anchor="w")
-            
-            y_offset += 40
+        coords[h] = (40 + assigned_cols[h] * x_spacing, current_y)
+        
+        # Propagate columns to parents (detect branching/merging)
+        for i, p in enumerate(c["parents"]):
+            if p not in assigned_cols:
+                assigned_cols[p] = assigned_cols[h] if i == 0 else next_col
+                if i != 0: next_col += 1
+                    
+        current_y += y_spacing
+        
+    # Phase 1: Draw interconnecting lines
+    for c in commits:
+        hx, hy = coords[c["hash"]]
+        for p in c["parents"]:
+            if p in coords:
+                px, py = coords[p]
+                graph_canvas.create_line(hx, hy + 12, px, py - 12, fill=LINE_COLOR, width=3, smooth=True)
+            else:
+                graph_canvas.create_line(hx, hy + 12, hx, hy + 35, fill=LINE_COLOR, width=2, dash=(4, 4))
+                
+    # Phase 2: Draw nodes and badges
+    radius = 12
+    for c in commits:
+        h = c["hash"]
+        cx, cy = coords[h]
+        dec = c["decorations"]
+        
+        # Color specific to ref type
+        node_col = ACCENT_COLOR if "HEAD" in dec else SUCCESS_COLOR if dec else NODE_COLOR
+        
+        # Node
+        graph_canvas.create_oval(cx-radius, cy-radius, cx+radius, cy+radius, fill=node_col, outline=BG_COLOR, width=2)
+        
+        text_x = cx + 25
+        # Decorations (Branch names, Tags, HEAD)
+        if dec:
+            dec_clean = dec.replace("(", "").replace(")", "").strip()
+            pad = len(dec_clean) * 7
+            graph_canvas.create_rectangle(text_x, cy-12, text_x + pad + 10, cy+12, fill="#313244", outline=ACCENT_COLOR, width=1)
+            graph_canvas.create_text(text_x + 5, cy, text=dec_clean, fill=ACCENT_COLOR, font=("Consolas", 9, "bold"), anchor="w")
+            text_x += pad + 18
+        
+        # Commit hash and message
+        msg = c["msg"]
+        trunc_msg = msg[:35] + "..." if len(msg) > 35 else msg
+        graph_canvas.create_text(text_x, cy, text=f"{h} {trunc_msg}", fill=TEXT_COLOR, font=("Consolas", 10), anchor="w")
+        
+    graph_canvas.config(scrollregion=(0, 0, 800, current_y + 50))
 
 def display_output(text, tag=None):
     output_box.config(state=tk.NORMAL)
