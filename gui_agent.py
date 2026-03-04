@@ -164,6 +164,10 @@ def display_output(text, tag=None):
 root = tk.Tk()
 root.title("Git AI Assistant")
 root.geometry("1100x650")
+try:
+    root.state("zoomed") # Maximizes window on Windows, solving visual squishing
+except:
+    pass
 root.configure(bg=BG_COLOR)
 
 bold_font, normal_font = ("Consolas", 14, "bold"), ("Consolas", 11)
@@ -200,11 +204,11 @@ entry.bind("<Return>", run_command)
 tk.Button(input_frame, text="Send", command=run_command, bg=ACCENT_COLOR, fg=BG_COLOR, font=("Consolas", 11, "bold"), bd=0, activebackground=SUCCESS_COLOR, padx=15).pack(side=tk.RIGHT, fill=tk.Y)
 
 # 3. Visual Graph Area (Right)
-graph_frame = tk.Frame(main_frame, bg=GRAPH_BG, width=300, padx=10, pady=20)
-graph_frame.pack(side=tk.RIGHT, fill=tk.Y)
+graph_frame = tk.Frame(main_frame, bg=GRAPH_BG, width=400, padx=10, pady=20)
+graph_frame.pack(side=tk.RIGHT, fill=tk.BOTH, expand=True) # Let the graph dynamically expand!
 tk.Label(graph_frame, text="Visual Graph", font=bold_font, bg=GRAPH_BG, fg=NODE_COLOR).pack(anchor="w", pady=(0, 10))
 
-graph_canvas = tk.Canvas(graph_frame, bg=GRAPH_BG, highlightthickness=0, width=280)
+graph_canvas = tk.Canvas(graph_frame, bg=GRAPH_BG, highlightthickness=0)
 graph_canvas.pack(fill=tk.BOTH, expand=True)
 
 display_output("Welcome! Need to push your code? Just type 'upload'.", "system")

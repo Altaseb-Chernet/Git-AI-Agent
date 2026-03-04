@@ -31,7 +31,8 @@ def commit(message):
 
 
 def push():
-    return run_git_command(["push"])
+    branch = get_branch().strip()
+    return run_git_command(["push", "-u", "origin", branch])
 
 
 def create_branch(name):
@@ -97,4 +98,5 @@ def stash_pop():
     return run_git_command(["stash", "pop"])
 
 def pull():
-    return run_git_command(["pull"])
+    branch = get_branch().strip()
+    return run_git_command(["pull", "origin", branch])
