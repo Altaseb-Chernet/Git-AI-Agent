@@ -52,3 +52,7 @@ def add_remote(url):
 def push_origin_main():
     run_git_command(["branch", "-M", "main"])
     return run_git_command(["push", "-u", "origin", "main"])
+
+def get_log_structured():
+    # Returns: short_hash|parent_hashes|message
+    return run_git_command(["log", "--pretty=format:%h|%p|%s", "-n", "10"])
