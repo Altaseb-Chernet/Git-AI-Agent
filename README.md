@@ -1,77 +1,111 @@
-# Git AI Agent 🧠🌿
+# Git AI Agent
 
-Welcome to the **Git AI Agent**! This is a state-of-the-art, fully autonomous, conversational, and visual Git client designed to replace confusing terminal commands with a smart, reactive, interactive experience.
+A local desktop assistant that lets you control Git with natural language, while showing a live visual commit graph.
 
-## What Problems Does This Solve?
-For decades, developers have struggled with Git's arcane terminal syntax. This system solves several major pain points:
-1. **Command Paralysis**: You no longer need to remember obscure commands to set an upstream branch (`git push --set-upstream origin ...`), stash code, or resolve merge states. You can just talk to the AI using conversational English (e.g., *"I want to upload my code"*).
-2. **Invisible States**: In the terminal, you never truly know what `HEAD` or your `branches` look like without typing `git log --graph --oneline --all` every five seconds. The **Visual Graph Canvas** gives you an instant, always-updating view of your repository's exact structural state.
-3. **"WIP" Commit Messages**: Developers are notoriously bad at writing commit messages. The AI Agent automatically runs `git diff` under the hood and uses an intelligent heuristic algorithm to generate descriptive, file-specific commit messages for you!
-4. **Merge Conflict Panic**: When a `git pull` fails in the terminal due to conflicts, developers often panic and try to abort. The AI Agent handles conflicts gracefully, pausing its internal flow, alerting you in Yellow, and waiting patiently until you fix the files and type *"resolved"*.
+The app combines:
+- A Tkinter GUI chat interface (`gui_agent.py`)
+- A stateful command router (`automation_engine.py`)
+- A lightweight Git CLI wrapper (`git_tools.py`)
 
----
+## What It Does
 
-## 🛠 Features & Capabilities
+- Understands plain-language Git requests like `upload my code`, `switch to main`, `merge feature-x`, and `status`.
+- Guides users through multi-step flows (for example: initialize repo, add remote URL, then push).
+- Handles merge-conflict pauses and resumes when the user confirms conflicts are resolved.
+- Auto-generates commit messages from local diff structure.
+- Draws recent commit history in a clickable graph (click a node to checkout that commit).
+- Refreshes branch, file-change stats, and Git identity in the sidebar.
 
-* **Natural Language Processing (NLP)**: The engine uses intelligent matching to understand conversational phrases instead of strict keywords. It automatically parses out filler words.
-* **Undo & Time Travel**: Natively supports conversational *"Oops"* and *"Undo"* commands. The visual graph is also fully interactive—you can click directly on a commit node to check it out!
-* **Master `sync` Automation**: A "one-shot" flow that stages files, auto-generates a commit message, fetches from the remote, checks for conflicts, and pushes your code—all from a single prompt!
-* **GitHub Dark Theme**: A universally accessible, beautiful `#0d1117` native desktop application layout that automatically expands to fit your monitor.
-* **Auto-Upstream Tracking**: Say goodbye to tracking branch errors. The AI automatically detects your active branch and links it to origin when pushing or pulling.
-* **Multi-Repo Quick Swap**: Quickly jump between different codebase folders using the `📂 Open Repo` button.
+## Project Structure
 
----
+```text
+.
+|- gui_agent.py           # Tkinter GUI + visual graph + chat wiring
+|- automation_engine.py   # Intent parsing + state machine flows
+|- git_tools.py           # Git subprocess helpers
+|- TECHNICAL_DOCS.md      # Extended architecture notes
+|- agent.py               # Legacy CLI entry point (not main UX path)
+|- state_model.py         # Legacy model file (currently stale)
+|- decision_engine.py     # Legacy suggestion helper
+```
 
-## 📖 User Manual: How to Use the AI
+## Requirements
 
-### 1. Launching the App
-Simply run the GUI agent from your Python terminal:
+- Python 3.10+ (stdlib only; no external Python packages required)
+- Git installed and available on `PATH`
+- A local Git repository (or let the assistant initialize one)
+
+## Quick Start
+
 ```bash
 python gui_agent.py
 ```
-> **Tip:** You can use the `📂 Open Repo` button in the sidebar to switch the AI to controlling any other Git project on your PC!
 
-### 2. General Conversation & Undoing Mistakes
-You can type commands like you are talking to a human:
-- *"what is happening"* -> Triggers `git status`
-- *"record changes"* -> Stashes changes or triggers an auto-commit
-- *"Oops, undo my last commit"* -> Safely triggers a `git reset --soft HEAD~1`. It undoes the commit but safely keeps your file modifications in the working directory! If you want to permanently destroy the changes, type *"undo hard"*.
+When the app opens:
+1. Use `Open Repo` to select a project folder.
+2. Type commands in the chat box.
+3. Confirm guided actions with `y` / `yes` when prompted.
 
-### 3. The "Sync" / "Upload" Flow
-If you want to save your progress to GitHub quickly without typing `add`, `commit`, `pull`, and `push`:
-- Type: **"I want to upload my code"** or **"sync my branch"**.
-- The AI will automatically generate a descriptive commit name based on the files you edited and ask for your permission.
-- If the folder is entirely new, the AI will offer to run `git init` and ask you to paste a remote URL!
+## Supported Commands
 
-### 4. Branching out
-- To create a branch, type: **"I want to make a new branch"**.
-- To switch branches, type: **"checkout main"** or **"change the branch"**. If you misspell the branch or type a branch that *doesn't exist yet*, the AI will smartly catch the Git terminal error and ask to create it.
+The parser is phrase-based, so close variants usually work.
 
-### 5. Managing Merges
-- To combine code, checkout the branch you want to receive the code, and type: **"merge [other-branch]"**.
-- If a conflict occurs, DO NOT panic! The AI will stop, warn you, and wait. Resolve the files, then type **"resolved"**.
+- `upload`, `sync`, `save my changes`
+- `status`, `what changed`
+- `commit`, `record changes`
+- `create branch <name>`, `new branch`
+- `checkout <name>`, `switch to <name>`
+- `merge <name>`
+- `stash`, `stash pop`
+- `config`, `who am i`, `set my name`
+- `help`
+- `clear`, `cls`
 
----
+## Main Workflow: Upload/Sync
 
-## 📊 How to Read the Visual Graph
+`upload` or `sync` triggers a guided flow:
+1. Generate a commit message from current changes.
+2. Stage and commit.
+3. Pull from `origin/<current-branch>`.
+4. If conflicts exist, pause and wait for `resolved`.
+5. Push to `origin/<current-branch>`.
 
-The right-side panel is your **Visual Graph**—a live, interactive map of your Git tree.
+If no Git repo exists, it offers initialization.
+If no remote exists, it asks for a remote URL and can push `main`.
 
-* **Purple/Pink/Green Nodes (Circles)**: These represent individual commits. **You can click on these circles to instantly Time Travel (checkout) to that specific point in history!**
-* **Connecting Lines**: Vertical lines show the history flowing upwards. If you create parallel branches and merge them, you will see the lines dynamically curve outwards and connect back together.
-* **Badges `[main]` / `[HEAD]`**: The colorful blocks of text next to nodes. **`HEAD ->`** points to the exact commit your filesystem is currently looking at!
-* **Hashes & Messages**: Next to the badges, you will see a 7-character hexadecimal Code (the Commit Hash) followed by the AI-generated commit message.
+## How Commit Messages Are Generated
 
----
+Commit messages are heuristic, not LLM-based:
+- It inspects `git diff` and `git diff --cached`.
+- Extracts changed file paths using regex.
+- Builds a template message depending on file count.
 
-## 🚀 Future Roadmap & What Should Be Improved
+This is fast and local, but not semantically deep.
 
-While the Git AI Agent is highly capable and production-ready, here is what can make it even better in Version 2.0:
+## Known Limitations
 
-1. **True AI Models for Commit Messages**:
-   - Currently, the AI uses a "Regex Heuristic Engine" to count file additions and string together a templated English sentence. 
-   - **Improvement**: Integrating an actual LLM API (like the Gemini API / OpenAI) with user-provided API keys to read the full `git diff` content and write highly contextual, semantic commit strings explaining *why* the code was changed.
+- Remote logic assumes `origin` as primary remote.
+- Message generation is pattern-based and may produce generic text.
+- Some legacy files (`state_model.py`, `agent.py`) are not aligned with the current GUI-first architecture.
+- No automated test suite is included yet.
 
-2. **Multi-Remote Management**:
-   - The engine handles `origin` brilliantly but is not equipped for complex Open-Source workflows where users have both an `upstream` source repository and an `origin` fork. 
-   - **Improvement**: Add the ability to natively tell the AI *"pull from the upstream master, but push to my remote fork"*.
+## Troubleshooting
+
+- `fatal: not a git repository`
+  - Open the correct folder, or run `upload` and confirm repo initialization.
+- Push fails with authentication error
+  - Configure your Git credentials/token outside the app (`git` itself handles auth).
+- Wrong branch pushed
+  - The app pushes the current branch returned by `git branch --show-current`.
+
+## Extending the Project
+
+Good upgrade points:
+- Replace heuristic commit generation in `generate_commit_message()` with an LLM provider.
+- Add multi-remote support (`origin` + `upstream` workflows).
+- Add automated tests around `AutomationEngine.process()` state transitions.
+- Add safer undo operations with explicit confirmations for hard resets.
+
+## Safety Notes
+
+This tool executes real Git commands in your selected repository. Review prompts before confirming operations like merge, push, or branch creation.
