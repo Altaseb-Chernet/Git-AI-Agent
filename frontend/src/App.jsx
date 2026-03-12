@@ -1,7 +1,19 @@
 import React, { useState } from 'react';
+import ChatInterface from './components/ChatInterface';
+import RepoConnector from './components/RepoConnector';
+import GitLogs from './components/GitLogs';
 import './App.css';
 
 function App() {
+  const [logs, setLogs] = useState([]);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleActionTaken = (newActions) => {
+    setLogs(prev => [...prev, ...newActions]);
+    // Trigger RepoConnector to refresh status when an action happens
+    setRefreshTrigger(prev => prev + 1);
+  };
+
   return (
     <div className="app-container">
       <aside className="sidebar">
@@ -17,27 +29,17 @@ function App() {
           </h1>
         </div>
         
-        <div className="glass-panel flex-grow placeholder-box" style={{ flex: '1', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '24px' }}>
-          <h2 className="panel-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Repository Connection
-          </h2>
-          <p>RepoConnector Component</p>
+        <div className="glass-panel flex-grow" style={{ flex: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <RepoConnector refreshTrigger={refreshTrigger} />
         </div>
         
-        <div className="glass-panel placeholder-box" style={{ height: '40%', display: 'flex', flexDirection: 'column', alignItems: 'flex-start', justifyContent: 'flex-start', padding: '24px' }}>
-          <h2 className="panel-title">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-            Activity Log
-          </h2>
-          <p>GitLogs Component</p>
+        <div className="glass-panel" style={{ height: '40%', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <GitLogs logs={logs} />
         </div>
       </aside>
       
-      <main className="main-content glass-panel placeholder-box" style={{ padding: '0', display: 'flex', flexDirection: 'column' }}>
-         <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-           <p>ChatInterface Component</p>
-         </div>
+      <main className="main-content glass-panel" style={{ padding: '0', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+         <ChatInterface onActionTaken={handleActionTaken} />
       </main>
     </div>
   );
