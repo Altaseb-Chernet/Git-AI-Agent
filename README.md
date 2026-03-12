@@ -20,31 +20,44 @@ The app combines:
 
 ```text
 .
-|- gui_agent.py           # Tkinter GUI + visual graph + chat wiring
-|- automation_engine.py   # Intent parsing + state machine flows
-|- git_tools.py           # Git subprocess helpers
-|- TECHNICAL_DOCS.md      # Extended architecture notes
+|- backend/               # FastAPI backend for intent parsing + Git subprocesses
+|  |- main.py             # FastAPI entry point
+|  |- api/                # API routes
+|  |- core/               # Git engine, State manager, AI parser
+|- frontend/              # Vite + React Modern GUI
+|  |- src/components/     # ChatInterface, RepoConnector, GitLogs
 |- agent.py               # Legacy CLI entry point (not main UX path)
-|- state_model.py         # Legacy model file (currently stale)
-|- decision_engine.py     # Legacy suggestion helper
+|- gui_agent.py           # Legacy Tkinter GUI 
+|- automation_engine.py   # Legacy State machine flows
+|- git_tools.py           # Legacy Git helpers
 ```
 
 ## Requirements
 
-- Python 3.10+ (stdlib only; no external Python packages required)
+- Python 3.10+
+- Node.js & npm (for the frontend)
 - Git installed and available on `PATH`
 - A local Git repository (or let the assistant initialize one)
 
-## Quick Start
+## Quick Start (Web App)
 
-```bash
-python gui_agent.py
-```
+1. **Start the Backend:**
+   ```bash
+   cd backend
+   pip install -r requirements.txt
+   uvicorn main:app --reload --port 8000
+   ```
 
-When the app opens:
-1. Use `Open Repo` to select a project folder.
-2. Type commands in the chat box.
-3. Confirm guided actions with `y` / `yes` when prompted.
+2. **Start the Frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+3. Open your browser to the local URL provided by Vite (usually `http://localhost:5173`).
+4. Wait for the Repository Status panel to connect.
+5. Use the Chat box to start executing natural language Git commands!
 
 ## Supported Commands
 
