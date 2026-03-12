@@ -49,13 +49,16 @@
 
 /* Responsive Layout */
 @media (max-width: 1024px) {
+  body {
+    overflow: auto; /* Allow body scroll on mobile */
+  }
   .app-container {
     flex-direction: column;
-    height: 100vh; /* Must be 100vh to become a scroll container */
+    height: auto;
+    min-height: 100vh;
     padding: 16px;
     gap: 16px;
-    overflow-y: auto; /* Internal scrolling for mobile */
-    overflow-x: hidden;
+    overflow: visible;
   }
   .sidebar {
     width: 100%;
@@ -63,12 +66,15 @@
   }
   .main-content {
     flex-direction: column;
+    height: auto;
     overflow: visible;
     gap: 16px;
   }
   .chat-container, .visualizer-container {
-    min-height: 600px;
-    overflow: visible;
+    min-height: 500px;
+    height: 500px;
+    overflow: hidden;
+    border-radius: 16px;
   }
 }
 

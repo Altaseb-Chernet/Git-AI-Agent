@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
+from pathlib import Path
 
 from core.git_engine import GitEngine
 from core.ai_parser import AIParser
@@ -162,8 +163,8 @@ async def repo_status():
 class RepoRequest(BaseModel): # Renamed from SetRepoRequest to RepoRequest as per snippet
     path: str
 
-@router.post("/api/set_repo") # Changed endpoint path
-async def set_repo(request: RepoRequest): # Changed request type to RepoRequest
+@router.post("/set_repo")
+async def set_repo(request: RepoRequest):
     """
     Endpoint to change the active git repository path.
     """
@@ -174,7 +175,7 @@ async def set_repo(request: RepoRequest): # Changed request type to RepoRequest
     git_engine.repo_path = str(path.absolute()) # Changed to use instance git_engine
     return {"status": "success", "repo_path": git_engine.repo_path}
 
-@router.get("/api/select_directory")
+@router.get("/select_directory")
 async def select_directory():
     try:
         import tkinter as tk

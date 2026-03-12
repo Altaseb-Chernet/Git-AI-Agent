@@ -97,16 +97,18 @@ const GitVisualizer = ({ refreshTrigger }) => {
             
             commit.refs.forEach(ref => {
                 ctx.font = '500 11px Inter, sans-serif';
-                const textWidth = ctx.measureText(ref).width;
+                // Clean up ref display: "HEAD -> main" -> "main"
+                const displayRef = ref.replace('HEAD -> ', '');
+                const textWidth = ctx.measureText(displayRef).width;
                 
                 // Background badge
-                ctx.fillStyle = '#e0e7ff'; // Indigo-100
+                ctx.fillStyle = ref.includes('HEAD') ? '#fee2e2' : '#e0e7ff';
                 ctx.beginPath();
                 ctx.roundRect(badgeX, node.y - 12, textWidth + 12, 18, 4);
                 ctx.fill();
                 
-                ctx.fillStyle = '#4f46e5'; // Indigo-600
-                ctx.fillText(ref, badgeX + 6, node.y + 1);
+                ctx.fillStyle = ref.includes('HEAD') ? '#ef4444' : '#4f46e5';
+                ctx.fillText(displayRef, badgeX + 6, node.y + 1);
                 
                 badgeX += textWidth + 20;
             });
