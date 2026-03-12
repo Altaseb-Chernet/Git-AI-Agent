@@ -135,38 +135,54 @@ const RepoConnector = ({ refreshTrigger }) => {
             <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 8px rgba(16, 185, 129, 0.4)' }}></div>
             <div>
               <div style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.95rem' }}>Git Tracking Active</div>
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>Monitoring workspace</div>
+              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>Monitoring: {status.branch || 'unknown'}</div>
             </div>
           </div>
 
+          {/* Categorized File Status */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--code-bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>Current Branch</span>
-              <span style={{ 
-                background: 'var(--accent-bg)', 
-                color: 'var(--accent-hover)', 
-                padding: '4px 12px', 
-                borderRadius: 'full',
-                fontSize: '0.8rem',
-                fontWeight: '600',
-                border: '1px solid var(--accent-border)'
-              }}>
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline', marginRight: '4px', verticalAlign: '-1px' }}><line x1="6" y1="3" x2="6" y2="15"/><circle cx="18" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M18 9a9 9 0 0 1-9 9"/></svg>
-                {status.branch || 'unknown'}
-              </span>
-            </div>
-            
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', paddingBottom: '12px', borderBottom: '1px solid rgba(0,0,0,0.05)' }}>
+             <h3 style={{ fontSize: '0.85rem', fontWeight: '700', margin: '0 0 8px 0', textTransform: 'uppercase', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>Working Tree Changes</h3>
+             
+             {Object.entries(status.categories || {}).map(([cat, files]) => (
+               files.length > 0 && (
+                 <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                       <span style={{ 
+                         color: cat === 'staged' ? 'var(--success-color)' : 
+                                cat === 'modified' ? '#2563eb' : 
+                                cat === 'untracked' ? '#7c3aed' : '#dc2626', 
+                         fontSize: '0.8rem', fontWeight: '700', textTransform: 'capitalize',
+                         display: 'flex', alignItems: 'center', gap: '6px'
+                       }}>
+                         {cat === 'staged' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
+                         {cat === 'modified' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>}
+                         {cat === 'untracked' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
+                         {cat === 'deleted' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
+                         {cat}
+                       </span>
+                       <span style={{ fontSize: '0.75rem', fontWeight: '600', padding: '2px 8px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }}>{files.length}</span>
+                    </div>
+                    <div style={{ maxHeight: '120px', overflowY: 'auto', paddingLeft: '18px' }}>
+                       {files.map(f => (
+                         <div key={f} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', padding: '2px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f}>
+                           {f}
+                         </div>
+                       ))}
+                    </div>
+                 </div>
+               )
+             ))}
+
+             {Object.values(status.categories || {}).every(v => v.length === 0) && (
+               <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontStyle: 'italic', textAlign: 'center', padding: '10px 0' }}>Clean working tree</div>
+             )}
+          </div>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--code-bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>Remote Origin</span>
               <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem', wordBreak: 'break-all', fontFamily: 'var(--font-mono)' }}>
                 {status.remote_url || 'No remote configured'}
-              </span>
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>Pending Changes</span>
-              <span style={{ color: status.changed_files?.length > 0 ? '#d97706' : 'var(--text-tertiary)', fontSize: '0.9rem', fontWeight: '600' }}>
-                {status.changed_files?.length || 0} files
               </span>
             </div>
           </div>
