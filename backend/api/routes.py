@@ -154,7 +154,7 @@ async def repo_status():
             "is_repo": True,
             "repo_path": git_engine.repo_path,
             "branch": branch,
-            "changed_files": status_info.get("changed_files", []),
+            "categories": status_info,
             "remote_url": remote_url
         }
     except Exception as e:

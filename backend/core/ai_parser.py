@@ -12,13 +12,13 @@ class AIParser:
     def __init__(self):
         # Dictionary of heuristic rules mapping patterns to intents
         self.rules = {
-            r"\\b(upload|sync|save|push)\\b": "sync_push",
-            r"\\bstatus|what changed\\b": "status",
-            r"\\bcheckout\\s+(.+)|switch to\\s+(.+)\\b": "checkout",
-            r"\\bnew branch\\s+(.+)|create branch\\s+(.+)\\b": "new_branch",
-            r"\\bcommit\\b": "commit",
-            r"\\bundo|oops|revert\\b": "undo_soft",
-            r"\\bstash\\b": "stash"
+            r"\b(upload|sync|save|push|publish|send)\b": "sync_push",
+            r"\b(status|what changed|what am i doing|changes|check)\b": "status",
+            r"\b(checkout|switch to|go to|move to)\s+(.+)\b": "checkout",
+            r"\b(new branch|create branch|make branch|add branch)\s+(.+)\b": "new_branch",
+            r"\b(commit|record|log changes)\b": "commit",
+            r"\b(undo|oops|revert|reset|back)\b": "undo_soft",
+            r"\b(stash|save for later|store)\b": "stash"
         }
 
     def parse_intent(self, text: str) -> Dict[str, Any]:

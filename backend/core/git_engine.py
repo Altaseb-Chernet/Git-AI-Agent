@@ -68,14 +68,36 @@ class GitEngine:
         if not success:
             raise GitExecutionError(err)
         
-        files = []
+        categories = {
+            "staged": [],
+            "modified": [],
+            "untracked": [],
+            "deleted": []
+        }
+        
         if out:
-            for line in out.split('\\n'):
+            for line in out.split('\n'):
                 if len(line) >= 3:
-                    state = line[:2].strip()
+                    state_raw = line[:2]
+                    index_state = state_raw[0]
+                    work_state = state_raw[1]
                     path = line[3:].strip()
-                    files.append({"state": state, "path": path})
-        return {"changed_files": files}
+                    
+                    # Categories based on porcelain v1
+                    if index_state in ('M', 'A', 'R', 'C'):
+                        categories["staged"].append(path)
+                    
+                    if work_state == 'M':
+                        categories["modified"].append(path)
+                    elif work_state == 'D':
+                        categories["deleted"].append(path)
+                    
+                    if index_state == '?' and work_state == '?':
+                        categories["untracked"].append(path)
+                    elif index_state == 'D':
+                        categories["deleted"].append(path)
+                        
+        return categories
 
     def get_current_branch(self) -> Optional[str]:
         success, out, err = self.execute(["git", "branch", "--show-current"])
