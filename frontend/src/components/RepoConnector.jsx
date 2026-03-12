@@ -64,7 +64,7 @@ const RepoConnector = ({ refreshTrigger }) => {
       </h2>
       
       {error && (
-        <div style={{ padding: '12px', background: 'rgba(239, 68, 68, 0.05)', border: '1px solid rgba(239, 68, 68, 0.2)', borderRadius: '8px', marginBottom: '16px' }}>
+        <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', marginBottom: '16px' }}>
           <div style={{ color: 'var(--error-color)', fontWeight: '600', fontSize: '0.9rem' }}>Connection Error</div>
           <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{error}</div>
           <button onClick={fetchStatus} style={{ marginTop: '8px', padding: '6px 12px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.8rem', cursor: 'pointer' }}>Retry Connection</button>
@@ -74,7 +74,7 @@ const RepoConnector = ({ refreshTrigger }) => {
       {/* Open Location Form */}
       <form onSubmit={handleSetRepo} style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
         <label style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>Open Local Git Project</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255,255,255,0.5)', padding: '6px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc', padding: '6px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
           <input 
             type="text" 
             value={repoPath}
@@ -119,7 +119,7 @@ const RepoConnector = ({ refreshTrigger }) => {
       </form>
 
       {!status?.is_repo && !error ? (
-        <div style={{ padding: '16px', background: 'rgba(245, 158, 11, 0.05)', border: '1px solid rgba(245, 158, 11, 0.2)', borderRadius: '12px' }}>
+        <div style={{ padding: '16px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '12px' }}>
           <div style={{ color: 'var(--warning-color)', fontWeight: '600', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             Not a Git Repository

@@ -34,17 +34,20 @@
   overflow: hidden;
 }
 
-/* Distinct Panel Colors */
+/* Distinct Panel Colors - Solid & Clean */
 .sidebar .glass-panel {
-  background: rgba(224, 231, 255, 0.45); /* Indigo glass tint */
+  background: #f1f5f9; /* Soft Indigo-Gray */
+  border-color: #cbd5e1;
 }
 
 .chat-container {
-  background: rgba(255, 255, 255, 0.65); /* Brighter white glass */
+  background: #ffffff; /* Clean White */
+  border-color: #e2e8f0;
 }
 
 .visualizer-container {
-  background: rgba(204, 251, 241, 0.45); /* Teal/Mint glass tint */
+  background: #f0fdfa; /* Soft Teal/Mint */
+  border-color: #99f6e4;
 }
 
 /* Responsive Layout */

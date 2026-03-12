@@ -97,8 +97,8 @@ const ChatInterface = ({ onActionTaken }) => {
               maxWidth: '80%', 
               padding: '12px 16px', 
               borderRadius: '12px',
-              backgroundColor: msg.sender === 'user' ? 'var(--accent-color)' : msg.sender === 'system' ? 'rgba(239, 68, 68, 0.1)' : 'var(--code-bg)',
-              border: msg.sender === 'agent' ? '1px solid var(--panel-border)' : msg.sender === 'system' ? '1px solid rgba(239,68,68,0.3)' : 'none',
+              backgroundColor: msg.sender === 'user' ? 'var(--accent-color)' : msg.sender === 'system' ? '#fef2f2' : 'var(--code-bg)',
+              border: msg.sender === 'agent' ? '1px solid var(--panel-border)' : msg.sender === 'system' ? '1px solid #fee2e2' : 'none',
               boxShadow: msg.sender === 'user' ? '0 4px 12px rgba(99, 102, 241, 0.25)' : 'none',
               color: msg.sender === 'user' ? '#fff' : msg.sender === 'system' ? 'var(--error-color)' : 'var(--text-primary)'
             }}>
@@ -133,7 +133,7 @@ const ChatInterface = ({ onActionTaken }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      <div className="chat-input-area" style={{ padding: '20px 24px', borderTop: '1px solid var(--panel-border)', background: 'rgba(255,255,255,0.5)' }}>
+      <div className="chat-input-area" style={{ padding: '20px 24px', borderTop: '1px solid var(--panel-border)', background: '#f8fafc' }}>
         <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '12px' }}>
           <input 
             type="text" 
@@ -185,7 +185,7 @@ const ChatInterface = ({ onActionTaken }) => {
       {showHelp && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(4px)',
+          backgroundColor: 'rgba(255, 255, 255, 0.8)',
           display: 'flex', alignItems: 'center', justifyContent: 'center',
           animation: 'fadeIn 0.2s ease-out', zIndex: 10
         }}>
