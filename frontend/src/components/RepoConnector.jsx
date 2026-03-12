@@ -4,6 +4,9 @@ import { apiService } from '../services/api';
 const RepoConnector = ({ refreshTrigger }) => {
   const [repoPath, setRepoPath] = useState('');
   const [isChangingRepo, setIsChangingRepo] = useState(false);
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   const fetchStatus = async () => {
     try {
