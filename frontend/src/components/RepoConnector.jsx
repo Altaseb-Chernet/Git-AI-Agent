@@ -71,33 +71,49 @@ const RepoConnector = ({ refreshTrigger }) => {
         </div>
       )}
 
-      {/* Repo Selection / Upload Form */}
-      <form onSubmit={handleSetRepo} style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <label style={{ fontSize: '0.85rem', fontWeight: '500', color: 'var(--text-secondary)' }}>Active Workspace Folder</label>
-        <div style={{ display: 'flex', gap: '8px' }}>
+      {/* Open Location Form */}
+      <form onSubmit={handleSetRepo} style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <label style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>Open Local Git Project</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'rgba(255,255,255,0.5)', padding: '6px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
           <input 
             type="text" 
             value={repoPath}
             onChange={(e) => setRepoPath(e.target.value)}
             placeholder={status?.repo_path || "E.g. C:/Projects/MyWebApp"}
             style={{ 
-              flex: 1, padding: '10px 12px', borderRadius: '8px', 
-              border: '1px solid var(--panel-border)', background: 'var(--code-bg)',
+              width: '100%', padding: '8px 10px', borderRadius: '6px', 
+              border: 'none', background: 'transparent',
               color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none',
               fontFamily: 'var(--font-mono)'
             }}
           />
           <button 
-            type="submit"
-            disabled={!repoPath.trim() || isChangingRepo}
+            type="button"
+            onClick={async () => {
+              try {
+                 setIsChangingRepo(true);
+                 const res = await apiService.selectDirectory();
+                 if (res.path) {
+                    setRepoPath(res.path);
+                    await apiService.setRepo(res.path);
+                    await fetchStatus();
+                    setRepoPath('');
+                 }
+              } catch (e) {
+                 setError('Failed to open directory dialog.');
+              } finally {
+                 setIsChangingRepo(false);
+              }
+            }}
+            disabled={isChangingRepo}
             style={{
-              padding: '0 16px', borderRadius: '8px', background: 'var(--text-primary)',
-              color: '#fff', fontSize: '0.85rem', fontWeight: '500', 
-              opacity: (!repoPath.trim() || isChangingRepo) ? 0.6 : 1, cursor: 'pointer',
-              transition: 'background 0.2s'
+              padding: '10px', borderRadius: '8px', background: 'var(--accent-color)',
+              color: '#fff', fontSize: '0.9rem', fontWeight: '600', 
+              opacity: isChangingRepo ? 0.5 : 1, cursor: 'pointer',
+              transition: 'background 0.2s', border: 'none', boxShadow: '0 2px 8px var(--accent-glow)'
             }}
           >
-            {isChangingRepo ? '...' : 'Load'}
+            {isChangingRepo ? 'Opening...' : 'Browse Project Location'}
           </button>
         </div>
       </form>

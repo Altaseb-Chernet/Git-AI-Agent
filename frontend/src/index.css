@@ -35,7 +35,7 @@
 
 body {
   font-family: var(--font-sans);
-  background: linear-gradient(-45deg, #ff9a9e, #fecfef, #a1c4fd, #c2e9fb);
+  background: linear-gradient(-45deg, #a1c4fd, #c2e9fb, #e0c3fc, #8fd3f4);
   background-size: 400% 400%;
   animation: gradientBG 15s ease infinite;
   color: var(--text-primary);

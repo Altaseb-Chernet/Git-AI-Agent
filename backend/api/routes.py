@@ -159,22 +159,43 @@ async def repo_status():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-class SetRepoRequest(BaseModel):
+class RepoRequest(BaseModel): # Renamed from SetRepoRequest to RepoRequest as per snippet
     path: str
 
-@router.post("/set_repo")
-async def set_repo(request: SetRepoRequest):
+@router.post("/api/set_repo") # Changed endpoint path
+async def set_repo(request: RepoRequest): # Changed request type to RepoRequest
     """
     Endpoint to change the active git repository path.
     """
-    import os
-    if not os.path.exists(request.path) or not os.path.isdir(request.path):
-        raise HTTPException(status_code=400, detail="Invalid directory path")
+    path = Path(request.path)
+    if not path.exists() or not path.is_dir():
+        raise HTTPException(status_code=400, detail="Directory does not exist")
     
-    git_engine.repo_path = os.path.abspath(request.path)
+    git_engine.repo_path = str(path.absolute()) # Changed to use instance git_engine
     return {"status": "success", "repo_path": git_engine.repo_path}
 
-@router.get("/graph")
+@router.get("/api/select_directory")
+async def select_directory():
+    try:
+        import tkinter as tk
+        from tkinter import filedialog
+        
+        # We need to run tkinter cautiously in a thread-safe / non-blocking way for the web server,
+        # but since we are local, an ephemeral hidden root window is fine.
+        root = tk.Tk()
+        root.withdraw() # Hide the main window
+        root.attributes('-topmost', True) # Bring dialog to front
+        
+        folder_path = filedialog.askdirectory(parent=root, title="Select Git Project Folder")
+        root.destroy()
+        
+        if folder_path:
+            return {"path": folder_path}
+        return {"path": None}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to open native dialog: {str(e)}")
+
+@router.get("/graph") # Reverted to original endpoint path /graph
 async def repo_graph():
     """
     Endpoint to get commit history topology for visualization.

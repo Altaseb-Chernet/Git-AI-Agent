@@ -20,9 +20,56 @@
 .main-content {
   flex-grow: 1;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 24px;
   height: 100%;
   position: relative;
+  overflow: hidden;
+}
+
+.chat-container, .visualizer-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Distinct Panel Colors */
+.sidebar .glass-panel {
+  background: rgba(224, 231, 255, 0.45); /* Indigo glass tint */
+}
+
+.chat-container {
+  background: rgba(255, 255, 255, 0.65); /* Brighter white glass */
+}
+
+.visualizer-container {
+  background: rgba(204, 251, 241, 0.45); /* Teal/Mint glass tint */
+}
+
+/* Responsive Layout */
+@media (max-width: 1024px) {
+  .app-container {
+    flex-direction: column;
+    height: 100vh; /* Must be 100vh to become a scroll container */
+    padding: 16px;
+    gap: 16px;
+    overflow-y: auto; /* Internal scrolling for mobile */
+    overflow-x: hidden;
+  }
+  .sidebar {
+    width: 100%;
+    height: auto;
+  }
+  .main-content {
+    flex-direction: column;
+    overflow: visible;
+    gap: 16px;
+  }
+  .chat-container, .visualizer-container {
+    min-height: 600px;
+    overflow: visible;
+  }
 }
 
 .brand-header {

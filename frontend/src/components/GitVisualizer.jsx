@@ -86,14 +86,14 @@ const GitVisualizer = ({ refreshTrigger }) => {
         ctx.strokeStyle = isHead ? '#4f46e5' : '#94a3b8';
         ctx.stroke();
 
-        // Draw text: Hash and Subject
+        // Draw text: Hash only (cleaner graph)
         ctx.font = '600 13px Inter, sans-serif';
         ctx.fillStyle = '#0f172a';
-        ctx.fillText(`${commit.id} • ${commit.message}`, node.x + 20, node.y + 4);
+        ctx.fillText(`${commit.id}`, node.x + 20, node.y + 4);
         
         // Draw refs (Branches/Tags)
         if (commit.refs.length > 0) {
-            let badgeX = node.x + 20 + ctx.measureText(`${commit.id} • ${commit.message}`).width + 12;
+            let badgeX = node.x + 20 + ctx.measureText(`${commit.id}`).width + 12;
             
             commit.refs.forEach(ref => {
                 ctx.font = '500 11px Inter, sans-serif';
@@ -131,7 +131,7 @@ const GitVisualizer = ({ refreshTrigger }) => {
         </h2>
       </div>
       
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '24px', background: '#fff' }}>
+      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '24px', background: 'transparent' }}>
          {error ? (
            <div style={{ color: 'var(--text-secondary)' }}>Initialize a repository to see the graph.</div>
          ) : commits.length === 0 ? (

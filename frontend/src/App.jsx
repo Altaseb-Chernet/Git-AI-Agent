@@ -39,12 +39,12 @@ function App() {
         </div>
       </aside>
       
-      <main className="main-content" style={{ display: 'flex', flexDirection: 'row', gap: '24px', overflow: 'hidden' }}>
-         <div className="glass-panel" style={{ flex: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-             <GitVisualizer refreshTrigger={refreshTrigger} />
-         </div>
-         <div className="glass-panel" style={{ flex: '1', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+      <main className="main-content">
+         <div className="glass-panel chat-container">
              <ChatInterface onActionTaken={handleActionTaken} />
+         </div>
+         <div className="glass-panel visualizer-container">
+             <GitVisualizer refreshTrigger={refreshTrigger} />
          </div>
       </main>
     </div>

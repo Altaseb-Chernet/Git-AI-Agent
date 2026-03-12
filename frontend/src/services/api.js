@@ -63,5 +63,18 @@ export const apiService = {
       console.error('Error fetching git graph:', error);
       throw error;
     }
+  },
+
+  async selectDirectory() {
+    try {
+      const response = await fetch(`${API_URL}/select_directory`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error opening directory dialog:', error);
+      throw error;
+    }
   }
 };
