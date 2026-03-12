@@ -18,7 +18,7 @@ class GitEngine:
     ALLOWED_COMMANDS = {
         "init", "status", "add", "commit", "push", "pull", 
         "fetch", "checkout", "branch", "merge", "log", 
-        "remote", "config", "stash", "reset", "revert"
+        "remote", "config", "stash", "reset", "revert", "rev-parse"
     }
 
     def __init__(self, repo_path: str = "."):
