@@ -22,10 +22,10 @@ class ChatResponse(BaseModel):
 
 @router.post("/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
-    \"\"\"
+    """
     Endpoint to receive natural language commands, parse intent,
     and execute Git actions, managing state seamlessly.
-    \"\"\"
+    """
     actions = []
     require_input = False
     response_msg = ""
@@ -86,7 +86,7 @@ async def chat_endpoint(request: ChatRequest):
 
             commit_msg = ai_parser.generate_commit_message("") # In future, pass git diff
             git_engine.commit(commit_msg)
-            actions.append(f"git commit -m \\"{commit_msg}\\"")
+            actions.append(f'git commit -m \\"{commit_msg}\\"')
 
             push_success, p_out, p_err = git_engine.push()
             if push_success:
@@ -134,9 +134,9 @@ async def chat_endpoint(request: ChatRequest):
 
 @router.get("/status")
 async def repo_status():
-    \"\"\"
+    """
     Endpoint to get the current repository status.
-    \"\"\"
+    """
     try:
         is_repo = git_engine.is_repo()
         if not is_repo:

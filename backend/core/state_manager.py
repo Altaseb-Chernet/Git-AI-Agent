@@ -1,10 +1,10 @@
 from typing import Dict, Any, Optional
 
 class StateManager:
-    \"\"\"
+    """
     Manages conversational state across interactions, allowing for multi-step 
     flows (e.g., asking for a remote URL before pushing).
-    \"\"\"
+    """
     
     def __init__(self):
         # In a real app, state would be keyed by a session or user ID

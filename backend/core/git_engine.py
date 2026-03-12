@@ -6,14 +6,14 @@ from typing import Tuple, List, Optional, Dict, Any
 logger = logging.getLogger(__name__)
 
 class GitExecutionError(Exception):
-    \"\"\"Custom exception for Git command failures.\"\"\"
+    """Custom exception for Git command failures."""
     pass
 
 class GitEngine:
-    \"\"\"
+    """
     A secure wrapper for executing Git CLI commands via subprocess.
     Includes command validation to prevent arbitrary shell injection.
-    \"\"\"
+    """
     
     ALLOWED_COMMANDS = {
         "init", "status", "add", "commit", "push", "pull", 
@@ -25,9 +25,9 @@ class GitEngine:
         self.repo_path = os.path.abspath(repo_path)
 
     def _validate_command(self, args: List[str]) -> bool:
-        \"\"\"
+        """
         Validates that the command starts with 'git' and uses an allowed subcommand.
-        \"\"\"
+        """
         if not args or args[0] != "git":
             return False
         if len(args) > 1 and args[1] not in self.ALLOWED_COMMANDS:
@@ -37,10 +37,10 @@ class GitEngine:
         return True
 
     def execute(self, args: List[str]) -> Tuple[bool, str, str]:
-        \"\"\"
+        """
         Executes a git command safely.
         Returns: (success_bool, stdout_str, stderr_str)
-        \"\"\"
+        """
         if not self._validate_command(args):
             raise ValueError(f"Command validation failed or unauthorized command: {' '.join(args)}")
 
