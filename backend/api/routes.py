@@ -140,7 +140,7 @@ async def repo_status():
     try:
         is_repo = git_engine.is_repo()
         if not is_repo:
-            return {"is_repo": False}
+            return {"is_repo": False, "repo_path": git_engine.repo_path}
             
         branch = git_engine.get_current_branch()
         status_info = git_engine.status()
@@ -148,12 +148,77 @@ async def repo_status():
         # Check remote
         su, out, err = git_engine.execute(["git", "remote", "get-url", "origin"])
         remote_url = out.strip() if su else None
-        
+
         return {
             "is_repo": True,
+            "repo_path": git_engine.repo_path,
             "branch": branch,
             "changed_files": status_info.get("changed_files", []),
             "remote_url": remote_url
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class SetRepoRequest(BaseModel):
+    path: str
+
+@router.post("/set_repo")
+async def set_repo(request: SetRepoRequest):
+    """
+    Endpoint to change the active git repository path.
+    """
+    import os
+    if not os.path.exists(request.path) or not os.path.isdir(request.path):
+        raise HTTPException(status_code=400, detail="Invalid directory path")
+    
+    git_engine.repo_path = os.path.abspath(request.path)
+    return {"status": "success", "repo_path": git_engine.repo_path}
+
+@router.get("/graph")
+async def repo_graph():
+    """
+    Endpoint to get commit history topology for visualization.
+    Retrieves commit hash, parent hashes, refs (branches/tags), author, and message.
+    """
+    try:
+        if not git_engine.is_repo():
+            return {"commits": []}
+            
+        # Format: hash|parent_hashes|refs|author_name|subject
+        # %h = abbreviated commit hash
+        # %p = abbreviated parent hashes
+        # %d = ref names (branches, tags)
+        # %an = author name
+        # %s = subject (commit message)
+        success, out, err = git_engine.execute([
+            "git", "log", "--all", "--topo-order", "--format=%h|%p|%d|%an|%s"
+        ])
+        
+        if not success:
+            return {"commits": [], "error": err}
+            
+        commits = []
+        for line in out.strip().split('\\n'):
+            if not line:
+                continue
+            parts = line.split('|', 4)
+            if len(parts) == 5:
+                commit_hash, parents, refs, author, msg = parts
+                
+                # Cleanup refs format: " (HEAD -> main, origin/main)" -> ["HEAD -> main", "origin/main"]
+                clean_refs = []
+                if refs.strip():
+                    ref_str = refs.strip()[1:-1] # Remove surrounding ()
+                    clean_refs = [r.strip() for r in ref_str.split(', ')]
+                    
+                commits.append({
+                    "id": commit_hash.strip(),
+                    "parents": [p for p in parents.strip().split(' ') if p],
+                    "refs": clean_refs,
+                    "author": author.strip(),
+                    "message": msg.strip()
+                })
+                
+        return {"commits": commits}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
