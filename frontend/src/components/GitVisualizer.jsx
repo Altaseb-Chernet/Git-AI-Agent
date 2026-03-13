@@ -86,10 +86,19 @@ const GitVisualizer = ({ refreshTrigger }) => {
         ctx.strokeStyle = isHead ? '#4f46e5' : '#94a3b8';
         ctx.stroke();
 
-        // Draw text: Hash only (cleaner graph)
+        // Draw text: Hash and Message
         ctx.font = '600 13px Inter, sans-serif';
         ctx.fillStyle = '#0f172a';
-        ctx.fillText(`${commit.id}`, node.x + 20, node.y + 4);
+        const hashDisplay = `${commit.id}`;
+        ctx.fillText(hashDisplay, node.x + 20, node.y + 4);
+        
+        ctx.font = '400 12px Inter, sans-serif';
+        ctx.fillStyle = '#64748b'; // Tailwind slate-500
+        const msgPadding = ctx.measureText(hashDisplay).width + 30;
+        const displayMsg = commit.message.length > 50 
+            ? commit.message.substring(0, 47) + '...' 
+            : commit.message;
+        ctx.fillText(displayMsg, node.x + msgPadding, node.y + 4);
         
         // Draw refs (Branches/Tags)
         if (commit.refs.length > 0) {

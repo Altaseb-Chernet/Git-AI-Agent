@@ -1,30 +1,32 @@
 :root {
-  --bg-color: #f8fafc;
-  --panel-bg: rgba(255, 255, 255, 0.75);
-  --panel-border: rgba(226, 232, 240, 0.8);
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-tertiary: #94a3b8;
+  --bg-color: #020617; /* Deepest Navy */
+  --panel-bg: rgba(15, 23, 42, 0.7); /* Translucent Slate-900 */
+  --panel-border: rgba(51, 65, 85, 0.5); /* Slate-700/50 */
+  --text-primary: #f8fafc;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
   
-  --accent-color: #6366f1;
-  --accent-hover: #4f46e5;
-  --accent-bg: rgba(99, 102, 241, 0.1);
-  --accent-border: rgba(99, 102, 241, 0.3);
-  --accent-glow: rgba(99, 102, 241, 0.3);
+  --accent-color: #818cf8; /* Rich Electric Indigo */
+  --accent-hover: #a5b4fc;
+  --accent-bg: rgba(129, 140, 248, 0.1);
+  --accent-border: rgba(129, 140, 248, 0.2);
+  --accent-glow: rgba(129, 140, 248, 0.4);
   
-  --code-bg: #f1f5f9;
+  --secondary-accent: #2dd4bf; /* Vibrant Teal */
   
-  --error-color: #ef4444;
+  --code-bg: #1e293b;
+  
+  --error-color: #f43f5e;
   --success-color: #10b981;
   --warning-color: #f59e0b;
 
-  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', 'Fira Code', 'Courier New', monospace;
+  --font-sans: 'Outfit', 'Inter', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 
-  --glass-blur: blur(20px);
-  --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  --shadow-md: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.01);
+  --glass-blur: blur(12px);
+  --shadow-lg: 0 10px 30px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
   --shadow-glow: 0 0 25px var(--accent-glow);
+  --radius-xl: 16px;
 }
 
 * {
@@ -35,28 +37,31 @@
 
 body {
   font-family: var(--font-sans);
-  background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+  background: radial-gradient(circle at top right, #0f172a, #020617);
   background-attachment: fixed;
   color: var(--text-primary);
-  line-height: 1.5;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow: hidden; /* App will manage internal scrolling */
+  overflow-x: hidden;
+  min-height: 100vh;
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-weight: 600;
+  font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
 a {
   color: var(--accent-color);
   text-decoration: none;
-  transition: color 0.2s;
+  transition: all 0.2s ease;
 }
 
 a:hover {
   color: var(--accent-hover);
+  text-shadow: 0 0 10px var(--accent-glow);
 }
 
 button {
@@ -65,36 +70,50 @@ button {
   border: none;
   background: none;
   outline: none;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Scrollbar Styles */
+/* Scrollbar Styles - Seamless Integration */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: transparent;
+  background: rgba(15, 23, 42, 0.1);
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
-  border-radius: 4px;
+  background: rgba(148, 163, 184, 0.2);
+  border-radius: 10px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(148, 163, 184, 0.6);
+  background: var(--accent-color);
 }
 
-/* Utilities */
+/* Utilities - Premium Glassmorphism */
 .glass-panel {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
-  transition: box-shadow 0.2s, transform 0.2s;
+  background: var(--panel-bg);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-lg);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .text-gradient {
-  background: linear-gradient(135deg, #6366f1 0%, #0ea5e9 100%);
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--secondary-accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.2); }
+  50% { box-shadow: 0 0 25px rgba(129, 140, 248, 0.5); }
+  100% { box-shadow: 0 0 10px rgba(129, 140, 248, 0.2); }
 }

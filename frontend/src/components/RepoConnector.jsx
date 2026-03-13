@@ -15,7 +15,7 @@ const RepoConnector = ({ refreshTrigger }) => {
       setStatus(data);
       setError(null);
     } catch (err) {
-      setError('Failed to connect to agent backend.');
+      setError('Connection link severed.');
     } finally {
       setLoading(false);
     }
@@ -24,14 +24,13 @@ const RepoConnector = ({ refreshTrigger }) => {
   const handleSetRepo = async (e) => {
     e.preventDefault();
     if (!repoPath.trim()) return;
-    
     setIsChangingRepo(true);
     try {
       await apiService.setRepo(repoPath);
       await fetchStatus();
       setRepoPath('');
     } catch (err) {
-      setError('Failed to switch repository path.');
+      setError('Failed to resolve path.');
     } finally {
       setIsChangingRepo(false);
     }
@@ -43,48 +42,39 @@ const RepoConnector = ({ refreshTrigger }) => {
 
   if (loading && !status) {
     return (
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px' }}>
-        <h2 className="panel-title">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Repository Status
-        </h2>
-        <div style={{ color: 'var(--text-tertiary)', marginTop: '20px', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span className="dot" style={{ width: '8px', height: '8px', background: 'var(--text-tertiary)', borderRadius: '50%', animation: 'blink 1.4s infinite' }}></span>
-          Checking repo...
-        </div>
+      <div style={{ padding: '24px', color: 'var(--text-tertiary)', fontSize: '0.9rem' }}>
+        <div className="dot" style={{ width: '8px', height: '8px', background: 'var(--accent-color)', borderRadius: '50%', marginBottom: '12px', animation: 'blink 1.4s infinite' }}></div>
+        Initializing...
       </div>
     );
   }
 
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '24px', overflowY: 'auto' }}>
-      <h2 className="panel-title" style={{ marginBottom: '24px', color: 'var(--text-primary)' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--accent-color)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-        Repository Tracker
+    <div style={{ display: 'flex', flexDirection: 'column', padding: '0 24px 24px 24px' }}>
+      <h2 style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Repository
       </h2>
       
       {error && (
-        <div style={{ padding: '12px', background: '#fef2f2', border: '1px solid #fee2e2', borderRadius: '8px', marginBottom: '16px' }}>
-          <div style={{ color: 'var(--error-color)', fontWeight: '600', fontSize: '0.9rem' }}>Connection Error</div>
-          <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{error}</div>
-          <button onClick={fetchStatus} style={{ marginTop: '8px', padding: '6px 12px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', borderRadius: '6px', color: 'var(--text-primary)', fontSize: '0.8rem', cursor: 'pointer' }}>Retry Connection</button>
+        <div className="glass-panel" style={{ padding: '12px', background: 'rgba(244, 63, 94, 0.1)', borderColor: 'rgba(244, 63, 94, 0.2)', marginBottom: '16px' }}>
+          <div style={{ color: 'var(--error-color)', fontWeight: '600', fontSize: '0.8rem' }}>Error</div>
+          <div style={{ color: 'var(--text-secondary)', fontSize: '0.75rem' }}>{error}</div>
         </div>
       )}
 
-      {/* Open Location Form */}
-      <form onSubmit={handleSetRepo} style={{ marginBottom: '24px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        <label style={{ fontSize: '0.9rem', fontWeight: '600', color: 'var(--text-primary)' }}>Open Local Git Project</label>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc', padding: '6px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
+      <form onSubmit={handleSetRepo} style={{ marginBottom: '24px' }}>
+        <div style={{ position: 'relative', display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <input 
             type="text" 
             value={repoPath}
             onChange={(e) => setRepoPath(e.target.value)}
-            placeholder={status?.repo_path || "E.g. C:/Projects/MyWebApp"}
+            placeholder={status?.repo_path || "Path to repo..."}
             style={{ 
-              width: '100%', padding: '8px 10px', borderRadius: '6px', 
-              border: 'none', background: 'transparent',
+              width: '100%', padding: '12px 16px', borderRadius: '12px', 
+              border: '1px solid var(--panel-border)', background: 'rgba(15, 23, 42, 0.3)',
               color: 'var(--text-primary)', fontSize: '0.85rem', outline: 'none',
-              fontFamily: 'var(--font-mono)'
+              fontFamily: 'var(--font-mono)', transition: 'all 0.2s'
             }}
           />
           <button 
@@ -94,100 +84,70 @@ const RepoConnector = ({ refreshTrigger }) => {
                  setIsChangingRepo(true);
                  const res = await apiService.selectDirectory();
                  if (res.path) {
-                    setRepoPath(res.path);
                     await apiService.setRepo(res.path);
                     await fetchStatus();
-                    setRepoPath('');
                  }
               } catch (e) {
-                 setError('Failed to open directory dialog.');
+                 setError('Dialog failed.');
               } finally {
                  setIsChangingRepo(false);
               }
             }}
-            disabled={isChangingRepo}
             style={{
-              padding: '10px', borderRadius: '8px', background: 'var(--accent-color)',
-              color: '#fff', fontSize: '0.9rem', fontWeight: '600', 
-              opacity: isChangingRepo ? 0.5 : 1, cursor: 'pointer',
-              transition: 'background 0.2s', border: 'none', boxShadow: '0 2px 8px var(--accent-glow)'
+              padding: '10px', borderRadius: '10px', background: 'var(--accent-color)',
+              color: '#fff', fontSize: '0.8rem', fontWeight: '700', cursor: 'pointer',
+              boxShadow: '0 4px 12px var(--accent-glow)'
             }}
           >
-            {isChangingRepo ? 'Opening...' : 'Browse Project Location'}
+            {isChangingRepo ? 'Opening...' : 'Browse Location'}
           </button>
         </div>
       </form>
 
-      {!status?.is_repo && !error ? (
-        <div style={{ padding: '16px', background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '12px' }}>
-          <div style={{ color: 'var(--warning-color)', fontWeight: '600', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-            Not a Git Repository
-          </div>
-          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
-            The current folder <code>{status?.repo_path || 'unknown'}</code> is not a valid git repository.
-          </p>
-        </div>
-      ) : status?.is_repo ? (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {/* Status Cards */}
-          <div style={{ padding: '16px', background: '#fff', border: '1px solid var(--panel-border)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-            <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 8px rgba(16, 185, 129, 0.4)' }}></div>
+      {status?.is_repo ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="glass-panel" style={{ padding: '12px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(16, 185, 129, 0.05)', borderColor: 'rgba(16, 185, 129, 0.2)' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--success-color)', boxShadow: '0 0 10px var(--success-color)' }}></div>
             <div>
-              <div style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.95rem' }}>Git Tracking Active</div>
-              <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>Monitoring: {status.branch || 'unknown'}</div>
+              <div style={{ color: 'var(--text-primary)', fontWeight: '600', fontSize: '0.85rem' }}>Active Branch</div>
+              <div style={{ color: 'var(--success-color)', fontSize: '0.8rem', fontWeight: '700' }}>{status.branch}</div>
             </div>
           </div>
 
-          {/* Categorized File Status */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--code-bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
-             <h3 style={{ fontSize: '0.85rem', fontWeight: '700', margin: '0 0 8px 0', textTransform: 'uppercase', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>Working Tree Changes</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+             <h3 style={{ fontSize: '0.7rem', fontWeight: '800', textTransform: 'uppercase', color: 'var(--text-tertiary)', letterSpacing: '0.05em' }}>Changes</h3>
              
              {Object.entries(status.categories || {}).map(([cat, files]) => (
                files.length > 0 && (
-                 <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                 <div key={cat} style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                        <span style={{ 
                          color: cat === 'staged' ? 'var(--success-color)' : 
-                                cat === 'modified' ? '#2563eb' : 
-                                cat === 'untracked' ? '#7c3aed' : '#dc2626', 
-                         fontSize: '0.8rem', fontWeight: '700', textTransform: 'capitalize',
-                         display: 'flex', alignItems: 'center', gap: '6px'
-                       }}>
-                         {cat === 'staged' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>}
-                         {cat === 'modified' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>}
-                         {cat === 'untracked' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>}
-                         {cat === 'deleted' && <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>}
-                         {cat}
-                       </span>
-                       <span style={{ fontSize: '0.75rem', fontWeight: '600', padding: '2px 8px', borderRadius: '10px', background: 'rgba(0,0,0,0.05)', color: 'var(--text-secondary)' }}>{files.length}</span>
+                                cat === 'modified' ? '#60a5fa' : 
+                                cat === 'untracked' ? '#a78bfa' : 'var(--error-color)', 
+                         fontSize: '0.75rem', fontWeight: '700', textTransform: 'uppercase'
+                       }}>{cat}</span>
+                       <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{files.length}</span>
                     </div>
-                    <div style={{ maxHeight: '120px', overflowY: 'auto', paddingLeft: '18px' }}>
-                       {files.map(f => (
-                         <div key={f} style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', padding: '2px 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={f}>
-                           {f}
+                    <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                       {files.slice(0, 5).map(f => (
+                         <div key={f} style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                           {f.split('/').pop()}
                          </div>
                        ))}
+                       {files.length > 5 && <div style={{ fontSize: '0.65rem', color: 'var(--text-tertiary)', paddingTop: '2px' }}>+ {files.length - 5} more</div>}
                     </div>
                  </div>
                )
              ))}
-
              {Object.values(status.categories || {}).every(v => v.length === 0) && (
-               <div style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem', fontStyle: 'italic', textAlign: 'center', padding: '10px 0' }}>Clean working tree</div>
+               <div style={{ color: 'var(--text-tertiary)', fontSize: '0.75rem', textAlign: 'center' }}>Clean tree</div>
              )}
           </div>
-
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', background: 'var(--code-bg)', padding: '16px', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', fontWeight: '500' }}>Remote Origin</span>
-              <span style={{ color: 'var(--text-primary)', fontSize: '0.85rem', wordBreak: 'break-all', fontFamily: 'var(--font-mono)' }}>
-                {status.remote_url || 'No remote configured'}
-              </span>
-            </div>
-          </div>
         </div>
-      ) : null}
+      ) : (
+        <div style={{ color: 'var(--warning-color)', fontSize: '0.8rem', textAlign: 'center' }}>No repository detected.</div>
+      )}
     </div>
   );
 };
