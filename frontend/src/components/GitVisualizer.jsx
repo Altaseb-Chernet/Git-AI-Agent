@@ -10,7 +10,7 @@ const GitVisualizer = ({ refreshTrigger }) => {
     const fetchGraph = async () => {
       try {
         setLoading(true);
-        const data = await apiService.getRepoGraph();
+        const data = await apiService.getGraph();
         setCommits(data.nodes || []);
       } catch (err) {
         console.error('Core visualization link failed.');
