@@ -161,36 +161,29 @@ const ChatInterface = ({ onActionTaken }) => {
       {showHelp && (
         <div style={{
           position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-            boxShadow: '0 20px 40px rgba(0,0,0,0.1)', width: '80%', maxWidth: '400px',
-            border: '1px solid var(--panel-border)'
-          }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h3 style={{ margin: 0, color: 'var(--text-primary)', fontSize: '1.25rem' }}>Supported Commands</h3>
-              <button 
-                onClick={() => setShowHelp(false)}
-                style={{ color: 'var(--text-tertiary)', cursor: 'pointer', background: 'none' }}
-              >
+          background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(8px)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
+        }}>
+          <div className="glass-panel" style={{ padding: '40px', width: '90%', maxWidth: '450px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-primary)' }}>Directives</h3>
+              <button onClick={() => setShowHelp(false)} style={{ color: 'var(--text-tertiary)', cursor: 'pointer' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               {helpCommands.map((item, idx) => (
-                <div key={idx} style={{ paddingBottom: '12px', borderBottom: '1px solid var(--panel-border)' }}>
-                  <div style={{ 
-                    fontFamily: 'var(--font-mono)', fontSize: '0.9rem', 
-                    color: 'var(--accent-color)', fontWeight: '600', marginBottom: '4px' 
-                  }}>
-                    "{item.cmd}"
-                  </div>
-                  <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>{item.desc}</div>
+                <div key={idx}>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--accent-color)', fontWeight: '700', marginBottom: '4px' }}>{item.cmd}</div>
+                  <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{item.desc}</div>
                 </div>
               ))}
             </div>
             <button 
               onClick={() => setShowHelp(false)}
-              style={{ width: '100%', padding: '12px', background: 'var(--code-bg)', color: 'var(--text-primary)', border: '1px solid var(--panel-border)', borderRadius: '8px', marginTop: '20px', fontWeight: '500' }}
+              style={{ width: '100%', padding: '14px', background: 'var(--accent-color)', color: '#fff', borderRadius: '12px', marginTop: '32px', fontWeight: '700', boxShadow: '0 4px 15px var(--accent-glow)' }}
             >
-              Close
+              CLOSE
             </button>
           </div>
         </div>

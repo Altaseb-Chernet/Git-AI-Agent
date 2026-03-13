@@ -10,38 +10,40 @@ const GitLogs = ({ logs }) => {
   }, [logs]);
 
   return (
-    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', padding: '24px', position: 'relative' }}>
-      <h2 className="panel-title" style={{ marginBottom: '16px' }}>
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
-        Activity Log
-      </h2>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <header style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <h2 style={{ fontSize: '0.75rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-tertiary)', margin: 0 }}>
+          Activity Log
+        </h2>
+      </header>
       
       <div 
         ref={containerRef}
         style={{ 
-          flex: 1, 
+          height: '180px',
           overflowY: 'auto', 
-          background: 'var(--code-bg)', 
-          borderRadius: '8px', 
+          background: 'rgba(15, 23, 42, 0.4)', 
+          borderRadius: '12px', 
           padding: '16px',
           fontFamily: 'var(--font-mono)',
-          fontSize: '0.85rem',
+          fontSize: '0.75rem',
           color: 'var(--text-secondary)',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px'
+          gap: '8px',
+          border: '1px solid var(--panel-border)'
         }}
         className="terminal-shell"
       >
-        <div style={{ color: 'var(--text-tertiary)' }}>$ AI Git Agent Initialized</div>
+        <div style={{ color: 'var(--text-tertiary)' }}>$ System Ready.</div>
         {logs.length === 0 && (
-          <div style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', marginTop: '8px' }}>Waiting for actions...</div>
+          <div style={{ color: 'var(--text-tertiary)', fontStyle: 'italic', opacity: 0.6 }}>No active operations.</div>
         )}
         
         {logs.map((log, index) => (
-          <div key={index} style={{ animation: 'fadeIn 0.3s ease-out' }}>
-            <span style={{ color: 'var(--success-color)', marginRight: '8px' }}>➜</span> 
-            <span style={{ color: '#fff' }}>{log}</span>
+          <div key={index} style={{ animation: 'fadeIn 0.2s ease-out', display: 'flex', gap: '8px' }}>
+            <span style={{ color: 'var(--accent-color)' }}>➜</span> 
+            <span style={{ color: 'var(--text-primary)', wordBreak: 'break-all' }}>{log}</span>
           </div>
         ))}
       </div>

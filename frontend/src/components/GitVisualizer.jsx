@@ -2,158 +2,118 @@ import React, { useState, useEffect, useRef } from 'react';
 import { apiService } from '../services/api';
 
 const GitVisualizer = ({ refreshTrigger }) => {
+  const canvasRef = useRef(null);
   const [commits, setCommits] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const canvasRef = useRef(null);
-
-  const fetchGraph = async () => {
-    try {
-      setLoading(true);
-      const data = await apiService.getGraph();
-      if (data.error) {
-         setError(data.error);
-         setCommits([]);
-      } else {
-         setCommits(data.commits || []);
-         setError(null);
-      }
-    } catch (err) {
-      setError('Failed to load git graph.');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   useEffect(() => {
+    const fetchGraph = async () => {
+      try {
+        setLoading(true);
+        const data = await apiService.getRepoGraph();
+        setCommits(data.nodes || []);
+      } catch (err) {
+        console.error('Core visualization link failed.');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchGraph();
   }, [refreshTrigger]);
 
-  // Simple topological drawing logic
   useEffect(() => {
-    if (!commits.length || !canvasRef.current) return;
-    
+    if (!canvasRef.current || commits.length === 0) return;
+
     const canvas = canvasRef.current;
     const ctx = canvas.getContext('2d');
-    const width = canvas.width;
-    const height = Math.max(commits.length * 60 + 40, 400);
-    canvas.height = height;
+    const dpr = window.devicePixelRatio || 1;
     
-    ctx.clearRect(0, 0, width, height);
+    const container = canvas.parentElement;
+    canvas.width = container.clientWidth * dpr;
+    canvas.height = 300 * dpr;
+    ctx.scale(dpr, dpr);
 
-    const nodeRadius = 8;
-    const spacingY = 60;
-    const startX = 40;
-    const startY = 30;
-    
-    // Map commits by ID to easily find parents
-    const commitMap = {};
-    commits.forEach((c, i) => {
-        commitMap[c.id] = { ...c, index: i, x: startX, y: startY + (i * spacingY) };
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    const nodeRadius = 10;
+    const spacing = 140;
+    const startX = 60;
+    const centerY = 150;
+
+    // Draw Edges
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(129, 140, 248, 0.4)';
+    ctx.lineWidth = 3;
+    ctx.setLineDash([5, 5]);
+
+    commits.forEach((commit, i) => {
+      if (i < commits.length - 1) {
+        ctx.moveTo(startX + i * spacing + nodeRadius, centerY);
+        ctx.lineTo(startX + (i + 1) * spacing - nodeRadius, centerY);
+      }
+    });
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // Draw Nodes
+    commits.forEach((commit, i) => {
+      const x = startX + i * spacing;
+      const y = centerY;
+
+      // Glow 
+      ctx.beginPath();
+      const gradient = ctx.createRadialGradient(x, y, 0, x, y, nodeRadius * 3);
+      gradient.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
+      gradient.addColorStop(1, 'transparent');
+      ctx.fillStyle = gradient;
+      ctx.arc(x, y, nodeRadius * 3, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Main Circle
+      ctx.beginPath();
+      ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+      const nodeGrad = ctx.createLinearGradient(x - nodeRadius, y - nodeRadius, x + nodeRadius, y + nodeRadius);
+      nodeGrad.addColorStop(0, '#818cf8');
+      nodeGrad.addColorStop(1, '#4f46e5');
+      ctx.fillStyle = nodeGrad;
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Labels
+      ctx.fillStyle = '#f8fafc';
+      ctx.font = 'bold 0.8rem "JetBrains Mono"';
+      ctx.textAlign = 'center';
+      ctx.fillText(commit.id.substring(0, 7), x, y + 30);
+
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '500 0.75rem "Outfit"';
+      let msg = commit.message || 'No message';
+      if (msg.length > 18) msg = msg.substring(0, 15) + '...';
+      ctx.fillText(msg, x, y + 48);
+
+      if (i === 0) {
+        ctx.fillStyle = '#2dd4bf';
+        ctx.font = 'bold 0.65rem "Outfit"';
+        ctx.fillText('HEAD', x, y - 24);
+      }
     });
 
-    // Draw Edges First
-    ctx.lineWidth = 2;
-    ctx.strokeStyle = '#cbd5e1'; // Tailwind slate-300
-    
-    commits.forEach(commit => {
-        const node = commitMap[commit.id];
-        commit.parents.forEach(parentId => {
-            const parentNode = commitMap[parentId];
-            if (parentNode) {
-                ctx.beginPath();
-                ctx.moveTo(node.x, node.y + nodeRadius);
-                ctx.lineTo(parentNode.x, parentNode.y - nodeRadius);
-                ctx.stroke();
-            }
-        });
-    });
-
-    // Draw Nodes and Text
-    commits.forEach(commit => {
-        const node = commitMap[commit.id];
-        
-        // Draw primary node circle
-        ctx.beginPath();
-        ctx.arc(node.x, node.y, nodeRadius, 0, 2 * Math.PI);
-        
-        // Highlight HEAD if present
-        const isHead = commit.refs.some(r => r.includes('HEAD'));
-        ctx.fillStyle = isHead ? '#6366f1' : '#fff';
-        ctx.fill();
-        
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = isHead ? '#4f46e5' : '#94a3b8';
-        ctx.stroke();
-
-        // Draw text: Hash and Message
-        ctx.font = '600 13px Inter, sans-serif';
-        ctx.fillStyle = '#0f172a';
-        const hashDisplay = `${commit.id}`;
-        ctx.fillText(hashDisplay, node.x + 20, node.y + 4);
-        
-        ctx.font = '400 12px Inter, sans-serif';
-        ctx.fillStyle = '#64748b'; // Tailwind slate-500
-        const msgPadding = ctx.measureText(hashDisplay).width + 30;
-        const displayMsg = commit.message.length > 50 
-            ? commit.message.substring(0, 47) + '...' 
-            : commit.message;
-        ctx.fillText(displayMsg, node.x + msgPadding, node.y + 4);
-        
-        // Draw refs (Branches/Tags)
-        if (commit.refs.length > 0) {
-            let badgeX = node.x + 20 + ctx.measureText(`${commit.id}`).width + 12;
-            
-            commit.refs.forEach(ref => {
-                ctx.font = '500 11px Inter, sans-serif';
-                // Clean up ref display: "HEAD -> main" -> "main"
-                const displayRef = ref.replace('HEAD -> ', '');
-                const textWidth = ctx.measureText(displayRef).width;
-                
-                // Background badge
-                ctx.fillStyle = ref.includes('HEAD') ? '#fee2e2' : '#e0e7ff';
-                ctx.beginPath();
-                ctx.roundRect(badgeX, node.y - 12, textWidth + 12, 18, 4);
-                ctx.fill();
-                
-                ctx.fillStyle = ref.includes('HEAD') ? '#ef4444' : '#4f46e5';
-                ctx.fillText(displayRef, badgeX + 6, node.y + 1);
-                
-                badgeX += textWidth + 20;
-            });
-        }
-    });
   }, [commits]);
 
-  if (loading) {
-    return (
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-tertiary)' }}>
-         Loading graph...
-      </div>
-    );
-  }
-
   return (
-    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--panel-border)' }}>
-        <h2 className="panel-title" style={{ margin: 0 }}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="18" r="3"/><circle cx="6" cy="6" r="3"/><path d="M13 6h3a2 2 0 0 1 2 2v7"/><line x1="6" y1="9" x2="6" y2="21"/></svg>
-          Commit Visualization
+    <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '0.85rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '8px', height: '8px', background: 'var(--secondary-accent)', borderRadius: '50%', boxShadow: '0 0 10px var(--secondary-accent)' }}></div>
+          Temporal Registry
         </h2>
-      </div>
+        {loading && <div style={{ fontSize: '0.7rem', color: 'var(--accent-color)', fontWeight: '700', animation: 'blink 1.4s infinite' }}>SYNCING...</div>}
+      </header>
       
-      <div style={{ flex: 1, overflowY: 'auto', overflowX: 'auto', padding: '24px', background: 'transparent' }}>
-         {error ? (
-           <div style={{ color: 'var(--text-secondary)' }}>Initialize a repository to see the graph.</div>
-         ) : commits.length === 0 ? (
-           <div style={{ color: 'var(--text-secondary)' }}>No commits found.</div>
-         ) : (
-           <canvas 
-             ref={canvasRef} 
-             width={800} 
-             style={{ display: 'block' }} 
-           />
-         )}
+      <div style={{ flex: 1, minHeight: '300px', width: '100%', overflowX: 'auto', background: 'rgba(15, 23, 42, 0.2)', borderRadius: '20px', padding: '20px', border: '1px solid var(--panel-border)' }}>
+        <canvas ref={canvasRef} style={{ width: '100%', height: '300px', display: 'block' }} />
       </div>
     </div>
   );
