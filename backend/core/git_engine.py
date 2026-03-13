@@ -112,6 +112,14 @@ class GitEngine:
     
     def commit(self, message: str):
         return self.execute(["git", "commit", "-m", message])
+
+    def diff(self, staged: bool = False) -> str:
+        """Returns the git diff. If staged=True, returns --cached diff."""
+        cmd = ["git", "diff"]
+        if staged:
+            cmd.append("--cached")
+        success, out, err = self.execute(cmd)
+        return out if success else ""
         
     def push(self, remote: str = "origin", branch: str = ""):
         if not branch:

@@ -90,9 +90,12 @@ async def chat_endpoint(request: ChatRequest):
             git_engine.add_all()
             actions.append("git add .")
 
-            commit_msg = ai_parser.generate_commit_message("") # In future, pass git diff
+            # Capture staged changes for AI commit message generation
+            diff_content = git_engine.diff(staged=True)
+            commit_msg = ai_parser.generate_commit_message(diff_content)
+            
             git_engine.commit(commit_msg)
-            actions.append(f'git commit -m \\"{commit_msg}\\"')
+            actions.append(f'git commit -m "{commit_msg}"')
 
             push_success, p_out, p_err = git_engine.push()
             if push_success:
