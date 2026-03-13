@@ -63,13 +63,18 @@ async def chat_endpoint(request: ChatRequest):
     # Step 3: Execution Logic based on Intent
     if action == "status":
         status_data = git_engine.status()
-        files = status_data.get("changed_files", [])
-        if not files:
+        # Consolidate all changes into a single list for the chat response
+        all_changes = []
+        for cat, files in status_data.items():
+            for f in files:
+                all_changes.append({"state": cat, "path": f})
+        
+        if not all_changes:
             response_msg = "Your working tree is clean. Nothing to commit."
         else:
-            response_msg = f"You have {len(files)} modified files:\\n"
-            for f in files:
-                response_msg += f"- {f['state']} {f['path']}\\n"
+            response_msg = f"You have {len(all_changes)} modified files:\n"
+            for f in all_changes:
+                response_msg += f"- {f['state']} {f['path']}\n"
             actions.append("Checked git status")
 
     elif action == "sync_push":
@@ -220,7 +225,7 @@ async def repo_graph():
             return {"commits": [], "error": err}
             
         commits = []
-        for line in out.strip().split('\\n'):
+        for line in out.strip().split('\n'):
             if not line:
                 continue
             parts = line.split('|', 4)
