@@ -1,7 +1,7 @@
 :root {
-  --bg-color: #020617; /* Deepest Navy */
-  --panel-bg: rgba(15, 23, 42, 0.7); /* Translucent Slate-900 */
-  --panel-border: rgba(51, 65, 85, 0.5); /* Slate-700/50 */
+  --bg-color: #0a0f1e; /* Vibrant Dark Navy */
+  --panel-bg: rgba(15, 23, 42, 0.6); 
+  --panel-border: rgba(129, 140, 248, 0.15); 
   --text-primary: #f8fafc;
   --text-secondary: #cbd5e1;
   --text-tertiary: #94a3b8;
@@ -37,7 +37,7 @@
 
 body {
   font-family: var(--font-sans);
-  background: radial-gradient(circle at top right, #0f172a, #020617);
+  background: radial-gradient(circle at top right, #111827, #0a0f1e);
   background-attachment: fixed;
   color: var(--text-primary);
   line-height: 1.6;

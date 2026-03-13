@@ -129,7 +129,7 @@ const RepoConnector = ({ refreshTrigger }) => {
                        }}>{cat}</span>
                        <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)' }}>{files.length}</span>
                     </div>
-                    <div style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                    <div>
                        {files.slice(0, 5).map(f => (
                          <div key={f} style={{ fontSize: '0.7rem', color: 'var(--text-secondary)', padding: '2px 0', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                            {f.split('/').pop()}

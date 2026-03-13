@@ -20,8 +20,6 @@ const GitLogs = ({ logs }) => {
       <div 
         ref={containerRef}
         style={{ 
-          height: '180px',
-          overflowY: 'auto', 
           background: 'rgba(15, 23, 42, 0.4)', 
           borderRadius: '12px', 
           padding: '16px',

@@ -11,7 +11,7 @@ const GitVisualizer = ({ refreshTrigger }) => {
       try {
         setLoading(true);
         const data = await apiService.getGraph();
-        setCommits(data.nodes || []);
+        setCommits(data.commits || []);
       } catch (err) {
         console.error('Core visualization link failed.');
       } finally {

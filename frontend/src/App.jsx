@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import ChatInterface from './components/ChatInterface';
 import RepoConnector from './components/RepoConnector';
 import GitLogs from './components/GitLogs';
-import GitVisualizer from './components/GitVisualizer';
 import './App.css';
 
 function App() {
@@ -11,7 +10,6 @@ function App() {
 
   const handleActionTaken = (newActions) => {
     setLogs(prev => [...prev, ...newActions]);
-    // Trigger RepoConnector & Visualizer to refresh status when an action happens
     setRefreshTrigger(prev => prev + 1);
   };
 
@@ -42,9 +40,6 @@ function App() {
       <main className="main-content">
          <div className="glass-panel chat-container">
              <ChatInterface onActionTaken={handleActionTaken} />
-         </div>
-         <div className="glass-panel visualizer-container">
-             <GitVisualizer refreshTrigger={refreshTrigger} />
          </div>
       </main>
     </div>

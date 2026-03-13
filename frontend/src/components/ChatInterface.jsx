@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { apiService } from '../services/api';
+import GitVisualizer from './GitVisualizer';
 
 const ChatInterface = ({ onActionTaken }) => {
   const [messages, setMessages] = useState([
@@ -129,7 +130,12 @@ const ChatInterface = ({ onActionTaken }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Integrated Visualization - Outside scroll area for constant visibility */}
       <div style={{ padding: '0 32px 32px 32px' }}>
+        <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)' }}>
+           <GitVisualizer refreshTrigger={messages.length} />
+        </div>
+
         <form onSubmit={handleSubmit} style={{ 
           display: 'flex', gap: '12px', background: 'var(--panel-bg)', padding: '10px', 
           borderRadius: '20px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-lg)'
