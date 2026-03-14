@@ -82,6 +82,7 @@ const ChatInterface = ({ onActionTaken }) => {
         </button>
       </header>
 
+      {/* Single scrollable area: messages → input → visualizer */}
       <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', scrollBehavior: 'smooth' }}>
         {messages.map((msg) => (
           <div key={msg.id} style={{ 
@@ -128,18 +129,12 @@ const ChatInterface = ({ onActionTaken }) => {
           </div>
         )}
         <div ref={messagesEndRef} />
-      </div>
 
-      {/* Integrated Visualization + Input — stacked, no overlap */}
-      <div style={{ padding: '0 32px 32px 32px', display: 'flex', flexDirection: 'column', gap: '16px', flexShrink: 0 }}>
-        <div className="glass-panel" style={{ padding: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', maxHeight: '260px', overflow: 'hidden' }}>
-           <GitVisualizer refreshTrigger={messages.length} />
-        </div>
-
+        {/* Input form — inside scroll area, below messages */}
         <form onSubmit={handleSubmit} style={{ 
           display: 'flex', gap: '12px', background: 'var(--panel-bg)', padding: '10px', 
           borderRadius: '20px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-lg)',
-          flexShrink: 0
+          marginTop: '8px'
         }}>
           <input 
             type="text" 
@@ -163,6 +158,11 @@ const ChatInterface = ({ onActionTaken }) => {
             SEND
           </button>
         </form>
+
+        {/* Git commit visualization — below input, at bottom of scroll area */}
+        <div className="glass-panel" style={{ padding: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', marginTop: '8px' }}>
+          <GitVisualizer refreshTrigger={messages.length} />
+        </div>
       </div>
 
       {showHelp && (
