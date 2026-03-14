@@ -130,15 +130,16 @@ const ChatInterface = ({ onActionTaken }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Integrated Visualization - Outside scroll area for constant visibility */}
-      <div style={{ padding: '0 32px 32px 32px' }}>
-        <div className="glass-panel" style={{ padding: '24px', marginBottom: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)' }}>
+      {/* Integrated Visualization + Input — stacked, no overlap */}
+      <div style={{ padding: '0 32px 32px 32px', display: 'flex', flexDirection: 'column', gap: '16px', flexShrink: 0 }}>
+        <div className="glass-panel" style={{ padding: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', maxHeight: '260px', overflow: 'hidden' }}>
            <GitVisualizer refreshTrigger={messages.length} />
         </div>
 
         <form onSubmit={handleSubmit} style={{ 
           display: 'flex', gap: '12px', background: 'var(--panel-bg)', padding: '10px', 
-          borderRadius: '20px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-lg)'
+          borderRadius: '20px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-lg)',
+          flexShrink: 0
         }}>
           <input 
             type="text" 
