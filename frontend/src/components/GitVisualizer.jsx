@@ -42,9 +42,9 @@ const GitVisualizer = ({ refreshTrigger }) => {
 
     // Draw Edges
     ctx.beginPath();
-    ctx.strokeStyle = 'rgba(129, 140, 248, 0.4)';
-    ctx.lineWidth = 3;
-    ctx.setLineDash([5, 5]);
+    ctx.strokeStyle = '#d0d7de';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
 
     commits.forEach((commit, i) => {
       if (i < commits.length - 1) {
@@ -60,43 +60,31 @@ const GitVisualizer = ({ refreshTrigger }) => {
       const x = startX + i * spacing;
       const y = centerY;
 
-      // Glow 
-      ctx.beginPath();
-      const gradient = ctx.createRadialGradient(x, y, 0, x, y, nodeRadius * 3);
-      gradient.addColorStop(0, 'rgba(129, 140, 248, 0.3)');
-      gradient.addColorStop(1, 'transparent');
-      ctx.fillStyle = gradient;
-      ctx.arc(x, y, nodeRadius * 3, 0, Math.PI * 2);
-      ctx.fill();
-
-      // Main Circle
+      // Outer circle
       ctx.beginPath();
       ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
-      const nodeGrad = ctx.createLinearGradient(x - nodeRadius, y - nodeRadius, x + nodeRadius, y + nodeRadius);
-      nodeGrad.addColorStop(0, '#818cf8');
-      nodeGrad.addColorStop(1, '#4f46e5');
-      ctx.fillStyle = nodeGrad;
+      ctx.fillStyle = i === 0 ? '#0969da' : '#ffffff';
       ctx.fill();
-      ctx.strokeStyle = '#fff';
+      ctx.strokeStyle = i === 0 ? '#0969da' : '#57606a';
       ctx.lineWidth = 2;
       ctx.stroke();
 
       // Labels
-      ctx.fillStyle = '#f8fafc';
-      ctx.font = 'bold 0.8rem "JetBrains Mono"';
+      ctx.fillStyle = 'var(--text-primary)';
+      ctx.font = '600 0.8rem var(--font-mono)';
       ctx.textAlign = 'center';
-      ctx.fillText(commit.id.substring(0, 7), x, y + 30);
+      ctx.fillText(commit.id.substring(0, 7), x, y + 25);
 
-      ctx.fillStyle = '#94a3b8';
-      ctx.font = '500 0.75rem "Outfit"';
+      ctx.fillStyle = 'var(--text-secondary)';
+      ctx.font = '400 0.75rem var(--font-sans)';
       let msg = commit.message || 'No message';
-      if (msg.length > 18) msg = msg.substring(0, 15) + '...';
-      ctx.fillText(msg, x, y + 48);
+      if (msg.length > 20) msg = msg.substring(0, 17) + '...';
+      ctx.fillText(msg, x, y + 42);
 
       if (i === 0) {
-        ctx.fillStyle = '#2dd4bf';
-        ctx.font = 'bold 0.65rem "Outfit"';
-        ctx.fillText('HEAD', x, y - 24);
+        ctx.fillStyle = '#1a7f37';
+        ctx.font = '600 0.7rem var(--font-sans)';
+        ctx.fillText('HEAD', x, y - 20);
       }
     });
 
@@ -104,15 +92,15 @@ const GitVisualizer = ({ refreshTrigger }) => {
 
   return (
     <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <header style={{ marginBottom: '24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', background: 'var(--secondary-accent)', borderRadius: '50%', boxShadow: '0 0 10px var(--secondary-accent)' }}></div>
-          Temporal Registry
+      <header style={{ marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '0.8rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '8px', height: '8px', background: 'var(--secondary-accent)', borderRadius: '50%' }}></div>
+          Registry
         </h2>
-        {loading && <div style={{ fontSize: '0.7rem', color: 'var(--accent-color)', fontWeight: '700', animation: 'blink 1.4s infinite' }}>SYNCING...</div>}
+        {loading && <div style={{ fontSize: '0.7rem', color: 'var(--accent-color)', fontWeight: '600' }}>Syncing...</div>}
       </header>
       
-      <div style={{ flex: 1, minHeight: '300px', width: '100%', overflowX: 'auto', background: 'rgba(15, 23, 42, 0.2)', borderRadius: '20px', padding: '20px', border: '1px solid var(--panel-border)' }}>
+      <div style={{ flex: 1, minHeight: '300px', width: '100%', overflowX: 'auto', background: '#f6f8fa', borderRadius: '6px', padding: '20px', border: '1px solid var(--panel-border)' }}>
         <canvas ref={canvasRef} style={{ width: '100%', height: '300px', display: 'block' }} />
       </div>
     </div>

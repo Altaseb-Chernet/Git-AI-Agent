@@ -65,10 +65,10 @@ const ChatInterface = ({ onActionTaken }) => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
-      <header style={{ padding: '24px 32px', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(15, 23, 42, 0.2)' }}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--text-tertiary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', background: 'var(--accent-color)', borderRadius: '50%', boxShadow: '0 0 10px var(--accent-color)' }}></div>
-          Neural Command Center
+      <header style={{ padding: '24px 32px', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6f8fa' }}>
+        <h2 style={{ fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <div style={{ width: '8px', height: '8px', background: 'var(--accent-color)', borderRadius: '50%' }}></div>
+          Command Center
         </h2>
         <button 
           onClick={() => setShowHelp(true)}
@@ -93,23 +93,22 @@ const ChatInterface = ({ onActionTaken }) => {
           }}>
             <div style={{ 
               maxWidth: '85%', 
-              padding: '16px 20px', 
-              borderRadius: msg.sender === 'user' ? '20px 20px 4px 20px' : '20px 20px 20px 4px',
-              background: msg.sender === 'user' ? 'linear-gradient(135deg, var(--accent-color), #4f46e5)' : 'var(--panel-bg)',
-              border: msg.sender === 'user' ? 'none' : '1px solid var(--panel-border)',
-              boxShadow: msg.sender === 'user' ? '0 10px 20px -5px rgba(99, 102, 241, 0.4)' : 'var(--shadow-lg)',
+              padding: '12px 16px', 
+              borderRadius: '6px',
+              background: msg.sender === 'user' ? 'var(--accent-color)' : '#f6f8fa',
+              border: '1px solid var(--panel-border)',
+              boxShadow: 'none',
               color: msg.sender === 'user' ? '#fff' : 'var(--text-primary)',
-              position: 'relative', overflow: 'hidden'
+              position: 'relative'
             }}>
-              {msg.sender === 'agent' && <div style={{ position: 'absolute', top: 0, left: 0, width: '2px', height: '100%', background: 'var(--accent-color)' }}></div>}
-              <p style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.95rem', fontWeight: '500', lineHeight: '1.6' }}>{msg.text}</p>
+              <p style={{ margin: 0, whiteSpace: 'pre-wrap', fontSize: '0.9rem', fontWeight: '400', lineHeight: '1.5' }}>{msg.text}</p>
               
               {msg.actions && msg.actions.length > 0 && (
-                <div style={{ marginTop: '16px', paddingTop: '12px', borderTop: '1px solid var(--panel-border)' }}>
-                  <div style={{ fontSize: '0.75rem', color: msg.sender === 'user' ? '#fff' : 'var(--accent-color)', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Operation Logs</div>
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid var(--panel-border)' }}>
+                  <div style={{ fontSize: '0.7rem', color: msg.sender === 'user' ? '#fff' : 'var(--accent-color)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>Operation Logs</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     {msg.actions.map((act, i) => (
-                      <div key={i} style={{ fontSize: '0.8rem', opacity: 0.8, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <div key={i} style={{ fontSize: '0.75rem', opacity: 0.9, display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
                         {act}
                       </div>
@@ -118,49 +117,49 @@ const ChatInterface = ({ onActionTaken }) => {
                 </div>
               )}
             </div>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '8px', padding: '0 8px' }}>{msg.sender === 'agent' ? 'AGENT CORE' : 'USER'}</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '4px', padding: '0 4px', textTransform: 'uppercase', fontWeight: '600' }}>{msg.sender === 'agent' ? 'AGENT' : 'USER'}</span>
           </div>
         ))}
         {isLoading && (
           <div style={{ display: 'flex', gap: '4px', padding: '12px' }}>
-            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--accent-color)', borderRadius: '50%', animation: 'blink 1.4s infinite both' }}></span>
-            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--accent-color)', borderRadius: '50%', animation: 'blink 1.4s infinite both 0.2s' }}></span>
-            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--accent-color)', borderRadius: '50%', animation: 'blink 1.4s infinite both 0.4s' }}></span>
+            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--text-tertiary)', borderRadius: '50%', animation: 'blink 1.4s infinite both' }}></span>
+            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--text-tertiary)', borderRadius: '50%', animation: 'blink 1.4s infinite both 0.2s' }}></span>
+            <span className="dot" style={{ width: '6px', height: '6px', background: 'var(--text-tertiary)', borderRadius: '50%', animation: 'blink 1.4s infinite both 0.4s' }}></span>
           </div>
         )}
         <div ref={messagesEndRef} />
 
         {/* Input form — inside scroll area, below messages */}
         <form onSubmit={handleSubmit} style={{ 
-          display: 'flex', gap: '12px', background: 'var(--panel-bg)', padding: '10px', 
-          borderRadius: '20px', border: '1px solid var(--panel-border)', boxShadow: 'var(--shadow-lg)',
+          display: 'flex', gap: '12px', background: '#fff', padding: '8px', 
+          borderRadius: '6px', border: '1px solid var(--panel-border)',
           marginTop: '8px'
         }}>
           <input 
             type="text" 
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Issue command..."
+            placeholder="Type a command..."
             style={{ 
-              flex: 1, padding: '12px 20px', borderRadius: '14px', border: 'none',
-              background: 'transparent', color: 'var(--text-primary)', fontSize: '1rem', outline: 'none'
+              flex: 1, padding: '8px 12px', borderRadius: '4px', border: 'none',
+              background: 'transparent', color: 'var(--text-primary)', fontSize: '0.95rem', outline: 'none'
             }}
           />
           <button 
             type="submit" 
             disabled={!input.trim() || isLoading}
             style={{
-              padding: '0 24px', borderRadius: '14px', background: 'var(--accent-color)',
-              color: '#fff', fontWeight: '700', opacity: (!input.trim() || isLoading) ? 0.4 : 1,
-              boxShadow: '0 4px 15px var(--accent-glow)'
+              padding: '0 16px', borderRadius: '6px', background: 'var(--secondary-accent)',
+              color: '#fff', fontWeight: '600', opacity: (!input.trim() || isLoading) ? 0.6 : 1,
+              fontSize: '0.85rem'
             }}
           >
-            SEND
+            Send
           </button>
         </form>
 
         {/* Git commit visualization — below input, at bottom of scroll area */}
-        <div className="glass-panel" style={{ padding: '24px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)', marginTop: '8px' }}>
+        <div style={{ padding: '24px', background: '#ffffff', border: '1px solid var(--panel-border)', borderRadius: '6px', marginTop: '8px' }}>
           <GitVisualizer refreshTrigger={messages.length} />
         </div>
       </div>
@@ -171,26 +170,26 @@ const ChatInterface = ({ onActionTaken }) => {
           background: 'rgba(2, 6, 23, 0.8)', backdropFilter: 'blur(8px)',
           display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 100
         }}>
-          <div className="glass-panel" style={{ padding: '40px', width: '90%', maxWidth: '450px', background: 'var(--bg-color)', border: '1px solid var(--panel-border)' }}>
+          <div style={{ padding: '40px', width: '90%', maxWidth: '450px', background: '#fff', border: '1px solid var(--panel-border)', borderRadius: '6px' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
-              <h3 style={{ margin: 0, fontSize: '1.5rem', color: 'var(--text-primary)' }}>Directives</h3>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', color: 'var(--text-primary)', fontWeight: '600' }}>Directives</h3>
               <button onClick={() => setShowHelp(false)} style={{ color: 'var(--text-tertiary)', cursor: 'pointer' }}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
               </button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {helpCommands.map((item, idx) => (
                 <div key={idx}>
-                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.9rem', color: 'var(--accent-color)', fontWeight: '700', marginBottom: '4px' }}>{item.cmd}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: '0.85rem', color: 'var(--accent-color)', fontWeight: '600', marginBottom: '4px' }}>{item.cmd}</div>
                   <div style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>{item.desc}</div>
                 </div>
               ))}
             </div>
             <button 
               onClick={() => setShowHelp(false)}
-              style={{ width: '100%', padding: '14px', background: 'var(--accent-color)', color: '#fff', borderRadius: '12px', marginTop: '32px', fontWeight: '700', boxShadow: '0 4px 15px var(--accent-glow)' }}
+              style={{ width: '100%', padding: '12px', background: '#f6f8fa', border: '1px solid var(--panel-border)', color: 'var(--text-primary)', borderRadius: '6px', marginTop: '32px', fontWeight: '600' }}
             >
-              CLOSE
+              Close
             </button>
           </div>
         </div>

@@ -11,7 +11,7 @@
 /* Sidebar: Refined and Slim */
 .sidebar {
   width: 320px;
-  background: rgba(15, 23, 42, 0.4);
+  background: #f6f8fa;
   border-right: 1px solid var(--panel-border);
   display: flex;
   flex-direction: column;
@@ -38,12 +38,11 @@
 .brand-logo {
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: linear-gradient(135deg, var(--accent-color), var(--secondary-accent));
+  border-radius: 6px;
+  background: #24292f;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 0 20px var(--accent-glow);
 }
 
 /* Main Content: Hero Feel and Vertical Stack */
@@ -52,7 +51,7 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.5), transparent);
+  background: var(--bg-color);
   position: relative;
   overflow-y: auto;
   scroll-behavior: smooth;
