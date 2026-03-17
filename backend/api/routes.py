@@ -11,6 +11,24 @@ router = APIRouter()
 git_engine = GitEngine()
 ai_parser = AIParser()
 
+def _ensure_repo_or_respond(actions: list[str]):
+    if not git_engine.is_repo():
+        actions.append("Not a git repository")
+        return ChatResponse(
+            response="This folder is not a Git repository. Use the Repository panel to select a repo.",
+            actions_taken=actions,
+            require_user_input=False,
+            context=global_state_manager.context
+        )
+    return None
+
+def _working_tree_clean() -> bool:
+    try:
+        cats = git_engine.status()
+        return all(len(v) == 0 for v in cats.values())
+    except Exception:
+        return False
+
 class ChatRequest(BaseModel):
     message: str
     context: Optional[Dict[str, Any]] = None
@@ -62,6 +80,9 @@ async def chat_endpoint(request: ChatRequest):
 
     # Step 3: Execution Logic based on Intent
     if action == "status":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
         status_data = git_engine.status()
         # Consolidate all changes into a single list for the chat response
         all_changes = []
@@ -78,6 +99,9 @@ async def chat_endpoint(request: ChatRequest):
             actions.append("Checked git status")
 
     elif action == "sync_push":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
         # Check if remote exists
         success, out, err = git_engine.execute(["git", "remote", "-v"])
         if not success or "origin" not in out:
@@ -145,6 +169,9 @@ async def chat_endpoint(request: ChatRequest):
                 response_msg = f"Failed to push your code: {p_err}"
 
     elif action == "checkout":
+         maybe = _ensure_repo_or_respond(actions)
+         if maybe:
+             return maybe
          branch = args.get("branch_name")
          if not branch:
              response_msg = "Which branch would you like to checkout?"
@@ -158,6 +185,9 @@ async def chat_endpoint(request: ChatRequest):
                  response_msg = f"Could not switch to that branch: {err}"
 
     elif action == "new_branch":
+         maybe = _ensure_repo_or_respond(actions)
+         if maybe:
+             return maybe
          branch = args.get("branch_name")
          if not branch:
              response_msg = "What do you want to name the new branch?"
@@ -169,6 +199,136 @@ async def chat_endpoint(request: ChatRequest):
              else:
                  actions.append(f"Branch creation failed: {err}")
                  response_msg = f"Failed to create the branch: {err}"
+    elif action == "branch_list":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        ok, out, err = git_engine.list_branches()
+        if ok:
+            actions.append("git branch --all --verbose")
+            response_msg = out or "No branches found."
+        else:
+            actions.append(f"Branch list failed: {err}")
+            response_msg = f"Failed to list branches: {err}"
+
+    elif action == "fetch":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        ok, out, err = git_engine.fetch()
+        if ok:
+            actions.append("git fetch --prune origin")
+            response_msg = out or "Fetched latest refs from origin."
+        else:
+            actions.append(f"Fetch failed: {err}")
+            response_msg = f"Failed to fetch: {err}"
+
+    elif action == "pull":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        if not _working_tree_clean():
+            actions.append("Pull blocked: working tree not clean")
+            response_msg = "Pull blocked because your working tree has changes. Commit/stash first, then retry."
+        else:
+            ok, out, err = git_engine.pull(rebase=True)
+            if ok:
+                actions.append("git pull --rebase origin <current-branch>")
+                response_msg = out or "Pulled latest changes (rebase)."
+            else:
+                actions.append(f"Pull failed: {err}")
+                response_msg = f"Failed to pull: {err}"
+
+    elif action == "merge":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        branch = args.get("branch_name")
+        if not branch:
+            response_msg = "Which branch do you want to merge into the current branch?"
+        elif not _working_tree_clean():
+            actions.append("Merge blocked: working tree not clean")
+            response_msg = "Merge blocked because your working tree has changes. Commit/stash first, then retry."
+        else:
+            ok, out, err = git_engine.merge(branch)
+            if ok:
+                actions.append(f"git merge --no-ff {branch}")
+                response_msg = out or f"Merged {branch}."
+            else:
+                actions.append(f"Merge failed: {err}")
+                if "CONFLICT" in (out + "\n" + err):
+                    response_msg = "Merge has conflicts. Resolve files, then run `git add .` and `git commit`."
+                else:
+                    response_msg = f"Failed to merge: {err}"
+
+    elif action == "rebase":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        onto = args.get("onto")
+        if not onto:
+            response_msg = "Rebase onto which branch? Example: `rebase onto main`."
+        elif not _working_tree_clean():
+            actions.append("Rebase blocked: working tree not clean")
+            response_msg = "Rebase blocked because your working tree has changes. Commit/stash first, then retry."
+        else:
+            ok, out, err = git_engine.rebase(onto)
+            if ok:
+                actions.append(f"git rebase {onto}")
+                response_msg = out or f"Rebased onto {onto}."
+            else:
+                actions.append(f"Rebase failed: {err}")
+                if "CONFLICT" in (out + "\n" + err):
+                    response_msg = "Rebase has conflicts. Resolve files, then run `git add .` and `git rebase --continue`."
+                else:
+                    response_msg = f"Failed to rebase: {err}"
+
+    elif action == "rebase_abort":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        ok, out, err = git_engine.rebase_abort()
+        if ok:
+            actions.append("git rebase --abort")
+            response_msg = out or "Rebase aborted."
+        else:
+            actions.append(f"Abort failed: {err}")
+            response_msg = f"Failed to abort rebase: {err}"
+
+    elif action == "cherry_pick":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        commit_hash = args.get("commit")
+        if not commit_hash or commit_hash == "unknown":
+            response_msg = "Which commit hash should I cherry-pick? Example: `cherry-pick a1b2c3d`."
+        elif not _working_tree_clean():
+            actions.append("Cherry-pick blocked: working tree not clean")
+            response_msg = "Cherry-pick blocked because your working tree has changes. Commit/stash first, then retry."
+        else:
+            ok, out, err = git_engine.cherry_pick(commit_hash)
+            if ok:
+                actions.append(f"git cherry-pick {commit_hash}")
+                response_msg = out or f"Cherry-picked {commit_hash}."
+            else:
+                actions.append(f"Cherry-pick failed: {err}")
+                if "CONFLICT" in (out + "\n" + err):
+                    response_msg = "Cherry-pick has conflicts. Resolve files, then run `git add .` and `git cherry-pick --continue`."
+                else:
+                    response_msg = f"Failed to cherry-pick: {err}"
+
+    elif action == "cherry_pick_abort":
+        maybe = _ensure_repo_or_respond(actions)
+        if maybe:
+            return maybe
+        ok, out, err = git_engine.cherry_pick_abort()
+        if ok:
+            actions.append("git cherry-pick --abort")
+            response_msg = out or "Cherry-pick aborted."
+        else:
+            actions.append(f"Abort failed: {err}")
+            response_msg = f"Failed to abort cherry-pick: {err}"
+
     else:
         response_msg = "I'm not sure what you mean. Try saying 'upload my code' or 'check status'."
         actions.append("Unknown intent")

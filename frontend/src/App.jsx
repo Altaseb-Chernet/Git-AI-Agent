@@ -3,15 +3,23 @@ import ChatInterface from './components/ChatInterface';
 import RepoConnector from './components/RepoConnector';
 import GitLogs from './components/GitLogs';
 import GitVisualizer from './components/GitVisualizer';
+import Docs from './components/Docs';
 import './App.css';
 
 function App() {
   const [logs, setLogs] = useState([]);
   const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [activeTab, setActiveTab] = useState('workspace'); // workspace | docs
 
   const handleActionTaken = (newActions) => {
     setLogs(prev => [...prev, ...newActions]);
     setRefreshTrigger(prev => prev + 1);
+  };
+  
+  const handleRepoChanged = () => {
+    // Force status + graph refresh when switching repos
+    setRefreshTrigger(prev => prev + 1);
+    setLogs([]);
   };
 
   return (
@@ -30,34 +38,57 @@ function App() {
           </div>
         </div>
 
+        <nav className="navtabs" aria-label="Primary">
+          <button
+            className={`navtab ${activeTab === 'workspace' ? 'active' : ''}`}
+            onClick={() => setActiveTab('workspace')}
+            type="button"
+          >
+            Workspace
+          </button>
+          <button
+            className={`navtab ${activeTab === 'docs' ? 'active' : ''}`}
+            onClick={() => setActiveTab('docs')}
+            type="button"
+          >
+            Docs
+          </button>
+        </nav>
+
         <div className="topbar-meta">
-          <div className="pill">Live status</div>
-          <div className="pill pill-muted">Port 8080</div>
+          <div className="pill">API</div>
+          <div className="pill pill-muted">Port 8000</div>
         </div>
       </header>
 
-      <div className="workspace">
-        <main className="panel panel-main" aria-label="Chat">
-          <ChatInterface onActionTaken={handleActionTaken} />
-        </main>
+      {activeTab === 'workspace' ? (
+        <div className="workspace">
+          <main className="panel panel-main" aria-label="Chat">
+            <ChatInterface onActionTaken={handleActionTaken} />
+          </main>
 
-        <aside className="panel panel-right" aria-label="Repository">
-          <RepoConnector refreshTrigger={refreshTrigger} />
-          <div className="divider" />
-          <GitLogs logs={logs} />
-        </aside>
+          <aside className="panel panel-right" aria-label="Repository">
+            <RepoConnector refreshTrigger={refreshTrigger} onRepoChanged={handleRepoChanged} />
+            <div className="divider" />
+            <GitLogs logs={logs} />
+          </aside>
 
-        <section className="panel panel-bottom" aria-label="Commit graph">
-          <div className="section-title">
-            <div className="section-title-left">
-              <span className="section-dot" />
-              Commit visualization
+          <section className="panel panel-bottom" aria-label="Commit graph">
+            <div className="section-title">
+              <div className="section-title-left">
+                <span className="section-dot" />
+                Commit visualization
+              </div>
+              <div className="section-title-right">Scroll the page • Graph stays readable</div>
             </div>
-            <div className="section-title-right">Scroll the page • Graph stays readable</div>
-          </div>
-          <GitVisualizer refreshTrigger={refreshTrigger} />
-        </section>
-      </div>
+            <GitVisualizer refreshTrigger={refreshTrigger} />
+          </section>
+        </div>
+      ) : (
+        <div className="docs-shell">
+          <Docs />
+        </div>
+      )}
     </div>
   );
 }

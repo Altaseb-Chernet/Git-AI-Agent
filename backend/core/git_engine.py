@@ -19,7 +19,8 @@ class GitEngine:
         "init", "status", "add", "commit", "push", "pull",
         "fetch", "checkout", "branch", "merge", "log",
         "remote", "config", "stash", "reset", "revert", "rev-parse",
-        "diff", "show", "tag"
+        "diff", "show", "tag",
+        "rebase", "cherry-pick"
     }
 
     def __init__(self, repo_path: str = "."):
@@ -126,3 +127,37 @@ class GitEngine:
         if not branch:
             branch = self.get_current_branch() or "main"
         return self.execute(["git", "push", "-u", remote, branch])
+
+    def pull(self, remote: str = "origin", branch: str = "", rebase: bool = False):
+        if not branch:
+            branch = self.get_current_branch() or "main"
+        args = ["git", "pull"]
+        if rebase:
+            args.append("--rebase")
+        args.extend([remote, branch])
+        return self.execute(args)
+
+    def fetch(self, remote: str = "origin"):
+        return self.execute(["git", "fetch", "--prune", remote])
+
+    def list_branches(self):
+        return self.execute(["git", "branch", "--all", "--verbose"])
+
+    def merge(self, branch: str, no_ff: bool = True):
+        args = ["git", "merge"]
+        if no_ff:
+            args.append("--no-ff")
+        args.append(branch)
+        return self.execute(args)
+
+    def rebase(self, onto: str):
+        return self.execute(["git", "rebase", onto])
+
+    def rebase_abort(self):
+        return self.execute(["git", "rebase", "--abort"])
+
+    def cherry_pick(self, commit_hash: str):
+        return self.execute(["git", "cherry-pick", commit_hash])
+
+    def cherry_pick_abort(self):
+        return self.execute(["git", "cherry-pick", "--abort"])
