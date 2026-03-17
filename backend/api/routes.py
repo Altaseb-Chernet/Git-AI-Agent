@@ -87,20 +87,59 @@ async def chat_endpoint(request: ChatRequest):
             actions.append("Pre-flight check: Remote missing")
         else:
             # Sync flow: add -> commit -> push
-            git_engine.add_all()
-            actions.append("git add .")
+            add_ok, add_out, add_err = git_engine.add_all()
+            if add_ok:
+                actions.append("git add .")
+            else:
+                actions.append(f"git add . (failed): {add_err}")
+                response_msg = f"Failed to stage files: {add_err}"
+                return ChatResponse(
+                    response=response_msg,
+                    actions_taken=actions,
+                    require_user_input=require_input,
+                    context=global_state_manager.context
+                )
 
             # Capture staged changes for AI commit message generation
             diff_content = git_engine.diff(staged=True)
+            if not diff_content.strip():
+                # Nothing staged => nothing to commit; don't claim success
+                actions.append("Nothing staged; commit skipped")
+                response_msg = "No changes were staged, so nothing was committed or pushed. Make sure you edited files inside the selected repo."
+                return ChatResponse(
+                    response=response_msg,
+                    actions_taken=actions,
+                    require_user_input=require_input,
+                    context=global_state_manager.context
+                )
             commit_msg = ai_parser.generate_commit_message(diff_content)
             
-            git_engine.commit(commit_msg)
-            actions.append(f'git commit -m "{commit_msg}"')
+            commit_ok, c_out, c_err = git_engine.commit(commit_msg)
+            if commit_ok:
+                actions.append(f'git commit -m "{commit_msg}"')
+                # Record the exact commit created
+                h_ok, h_out, h_err = git_engine.execute(["git", "rev-parse", "--short", "HEAD"])
+                if h_ok and h_out:
+                    actions.append(f"Committed {h_out}")
+            else:
+                # Common case: nothing to commit (exit code 1)
+                actions.append(f'git commit -m "{commit_msg}" (failed): {c_err}')
+                response_msg = f"Commit failed: {c_err}"
+                return ChatResponse(
+                    response=response_msg,
+                    actions_taken=actions,
+                    require_user_input=require_input,
+                    context=global_state_manager.context
+                )
 
             push_success, p_out, p_err = git_engine.push()
             if push_success:
                 actions.append("git push")
-                response_msg = "Successfully synced your code to the remote repository!"
+                # p_out often includes 'Everything up-to-date' even when nothing new was pushed.
+                if p_out and "Everything up-to-date" in p_out:
+                    response_msg = "Push completed, but the remote was already up-to-date."
+                else:
+                    response_msg = "Successfully synced your code to the remote repository!"
             else:
                 actions.append(f"Push failed: {p_err}")
                 response_msg = f"Failed to push your code: {p_err}"
@@ -180,7 +219,10 @@ async def set_repo(request: RepoRequest):
     if not path.exists() or not path.is_dir():
         raise HTTPException(status_code=400, detail="Directory does not exist")
     
-    git_engine.repo_path = str(path.absolute()) # Changed to use instance git_engine
+    git_engine.repo_path = str(path.absolute())
+    # Clear any multi-step chat flow when switching repos so commands
+    # can't continue against the previous repo's conversational state.
+    global_state_manager.clear_context()
     return {"status": "success", "repo_path": git_engine.repo_path}
 
 @router.get("/select_directory")

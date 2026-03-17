@@ -16,6 +16,14 @@ class AIParser:
             r"\b(status|what changed|what am i doing|changes|check)\b": "status",
             r"\b(checkout|switch to|go to|move to)\s+(.+)\b": "checkout",
             r"\b(new branch|create branch|make branch|add branch)\s+(.+)\b": "new_branch",
+            r"\b(list branches|show branches|branches)\b": "branch_list",
+            r"\b(pull|sync from remote|update from remote)\b": "pull",
+            r"\b(fetch|fetch remote)\b": "fetch",
+            r"\b(merge)\s+(.+)\b": "merge",
+            r"\b(rebase)\s+(onto\s+)?(.+)\b": "rebase",
+            r"\b(cherry[- ]pick)\s+([0-9a-f]{6,40})\b": "cherry_pick",
+            r"\b(abort rebase)\b": "rebase_abort",
+            r"\b(abort cherry[- ]pick)\b": "cherry_pick_abort",
             r"\b(commit|record|log changes)\b": "commit",
             r"\b(undo|oops|revert|reset|back)\b": "undo_soft",
             r"\b(stash|save for later|store)\b": "stash"
@@ -32,10 +40,17 @@ class AIParser:
             if match:
                 # Extract branch names if captured
                 args = {}
-                if action in ("checkout", "new_branch"):
+                if action in ("checkout", "new_branch", "merge"):
                     # Extract the first non-None group
                     branch_name = next((g for g in match.groups() if g), "unknown")
                     args["branch_name"] = branch_name.strip()
+                elif action == "rebase":
+                    # groups: optional "onto " then target
+                    target = next((g for g in reversed(match.groups()) if g), "unknown")
+                    args["onto"] = target.strip()
+                elif action == "cherry_pick":
+                    commit_hash = next((g for g in match.groups() if g and re.fullmatch(r"[0-9a-f]{6,40}", g)), "unknown")
+                    args["commit"] = commit_hash.strip()
 
                 return {
                     "action": action,
