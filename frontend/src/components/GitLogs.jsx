@@ -10,9 +10,9 @@ const GitLogs = ({ logs }) => {
   }, [logs]);
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-      <header style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <h2 style={{ fontSize: '0.7rem', fontWeight: '700', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', margin: 0 }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', padding: '0 18px 18px 18px' }}>
+      <header style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '6px' }}>
+        <h2 style={{ fontSize: '0.7rem', fontWeight: '850', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)', margin: 0 }}>
           Activity Registry
         </h2>
       </header>
@@ -20,9 +20,9 @@ const GitLogs = ({ logs }) => {
       <div 
         ref={containerRef}
         style={{ 
-          background: '#ffffff', 
-          borderRadius: '6px', 
-          padding: '12px',
+          background: 'rgba(2, 6, 23, 0.22)', 
+          borderRadius: '16px', 
+          padding: '12px 12px',
           fontFamily: 'var(--font-mono)',
           fontSize: '0.75rem',
           color: 'var(--text-primary)',
@@ -30,7 +30,7 @@ const GitLogs = ({ logs }) => {
           flexDirection: 'column',
           gap: '6px',
           border: '1px solid var(--panel-border)',
-          minHeight: '120px'
+          minHeight: '140px'
         }}
         className="terminal-shell"
       >
@@ -42,7 +42,7 @@ const GitLogs = ({ logs }) => {
         )}
         
         {logs.map((log, index) => (
-          <div key={index} style={{ animation: 'fadeIn 0.2s ease-out', display: 'flex', gap: '8px', borderTop: index === 0 ? '1px solid #f0f0f0' : 'none', paddingTop: index === 0 ? '8px' : '0' }}>
+          <div key={index} style={{ animation: 'fadeIn 0.2s ease-out', display: 'flex', gap: '8px', borderTop: index === 0 ? '1px solid rgba(255,255,255,0.08)' : 'none', paddingTop: index === 0 ? '8px' : '0' }}>
             <span style={{ color: 'var(--accent-color)', fontWeight: 'bold' }}>»</span> 
             <span style={{ color: 'var(--text-secondary)', wordBreak: 'break-all', lineHeight: '1.4' }}>{log}</span>
           </div>

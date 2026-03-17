@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { apiService } from '../services/api';
-import GitVisualizer from './GitVisualizer';
 
 const ChatInterface = ({ onActionTaken }) => {
   const [messages, setMessages] = useState([
@@ -12,7 +11,7 @@ const ChatInterface = ({ onActionTaken }) => {
   const messagesEndRef = useRef(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' });
   };
 
   useEffect(() => {
@@ -45,7 +44,7 @@ const ChatInterface = ({ onActionTaken }) => {
       if (response.actions_taken && response.actions_taken.length > 0 && onActionTaken) {
         onActionTaken(response.actions_taken);
       }
-    } catch (error) {
+    } catch {
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'system', 
@@ -64,17 +63,17 @@ const ChatInterface = ({ onActionTaken }) => {
   ];
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', width: '100%', position: 'relative' }}>
-      <header style={{ padding: '24px 32px', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f6f8fa' }}>
-        <h2 style={{ fontSize: '0.85rem', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <div style={{ width: '8px', height: '8px', background: 'var(--accent-color)', borderRadius: '50%' }}></div>
+    <div style={{ display: 'flex', flexDirection: 'column', width: '100%', position: 'relative' }}>
+      <header style={{ padding: '18px 18px 10px 18px', borderBottom: '1px solid var(--panel-border)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h2 style={{ fontSize: '0.8rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-secondary)', margin: 0, display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div style={{ width: '9px', height: '9px', background: 'var(--accent-color)', borderRadius: '999px', boxShadow: '0 0 0 4px rgba(76,141,255,0.15)' }}></div>
           Command Center
         </h2>
         <button 
           onClick={() => setShowHelp(true)}
           style={{ 
             color: 'var(--text-tertiary)', 
-            fontSize: '1.2rem', cursor: 'pointer', transition: 'all 0.2s', padding: '4px'
+            fontSize: '1.1rem', cursor: 'pointer', transition: 'all 0.2s', padding: '6px', borderRadius: '10px'
           }}
           title="Manual"
         >
@@ -82,8 +81,8 @@ const ChatInterface = ({ onActionTaken }) => {
         </button>
       </header>
 
-      {/* Single scrollable area: messages → input → visualizer */}
-      <div className="chat-messages" style={{ flex: 1, overflowY: 'auto', padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px', scrollBehavior: 'smooth' }}>
+      {/* Page scroll (no fixed-height inner scroll box) */}
+      <div className="chat-messages" style={{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px' }}>
         {messages.map((msg) => (
           <div key={msg.id} style={{ 
             display: 'flex', 
@@ -94,10 +93,10 @@ const ChatInterface = ({ onActionTaken }) => {
             <div style={{ 
               maxWidth: '85%', 
               padding: '12px 16px', 
-              borderRadius: '6px',
-              background: msg.sender === 'user' ? 'var(--accent-color)' : '#f6f8fa',
+              borderRadius: '14px',
+              background: msg.sender === 'user' ? 'linear-gradient(135deg, rgba(76,141,255,0.95), rgba(196,161,255,0.85))' : 'rgba(255,255,255,0.06)',
               border: '1px solid var(--panel-border)',
-              boxShadow: 'none',
+              boxShadow: '0 18px 44px rgba(0,0,0,0.18)',
               color: msg.sender === 'user' ? '#fff' : 'var(--text-primary)',
               position: 'relative'
             }}>
@@ -117,7 +116,7 @@ const ChatInterface = ({ onActionTaken }) => {
                 </div>
               )}
             </div>
-            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '4px', padding: '0 4px', textTransform: 'uppercase', fontWeight: '600' }}>{msg.sender === 'agent' ? 'AGENT' : 'USER'}</span>
+            <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', marginTop: '6px', padding: '0 6px', textTransform: 'uppercase', fontWeight: '700', letterSpacing: '0.08em' }}>{msg.sender === 'agent' ? 'AGENT' : 'USER'}</span>
           </div>
         ))}
         {isLoading && (
@@ -129,11 +128,14 @@ const ChatInterface = ({ onActionTaken }) => {
         )}
         <div ref={messagesEndRef} />
 
-        {/* Input form — inside scroll area, below messages */}
+        {/* Input form — below messages (page scroll) */}
         <form onSubmit={handleSubmit} style={{ 
-          display: 'flex', gap: '12px', background: '#fff', padding: '8px', 
-          borderRadius: '6px', border: '1px solid var(--panel-border)',
-          marginTop: '8px'
+          display: 'flex', gap: '12px',
+          background: 'rgba(2, 6, 23, 0.22)',
+          padding: '10px',
+          borderRadius: '16px',
+          border: '1px solid var(--panel-border)',
+          marginTop: '10px'
         }}>
           <input 
             type="text" 
@@ -141,7 +143,7 @@ const ChatInterface = ({ onActionTaken }) => {
             onChange={(e) => setInput(e.target.value)}
             placeholder="Type a command..."
             style={{ 
-              flex: 1, padding: '8px 12px', borderRadius: '4px', border: 'none',
+              flex: 1, padding: '10px 12px', borderRadius: '12px', border: 'none',
               background: 'transparent', color: 'var(--text-primary)', fontSize: '0.95rem', outline: 'none'
             }}
           />
@@ -149,19 +151,15 @@ const ChatInterface = ({ onActionTaken }) => {
             type="submit" 
             disabled={!input.trim() || isLoading}
             style={{
-              padding: '0 16px', borderRadius: '6px', background: 'var(--secondary-accent)',
-              color: '#fff', fontWeight: '600', opacity: (!input.trim() || isLoading) ? 0.6 : 1,
-              fontSize: '0.85rem'
+              padding: '0 16px', borderRadius: '14px',
+              background: 'linear-gradient(135deg, rgba(63,185,80,0.95), rgba(76,141,255,0.55))',
+              color: '#fff', fontWeight: '800', opacity: (!input.trim() || isLoading) ? 0.6 : 1,
+              fontSize: '0.85rem', letterSpacing: '0.02em'
             }}
           >
             Send
           </button>
         </form>
-
-        {/* Git commit visualization — below input, at bottom of scroll area */}
-        <div style={{ padding: '24px', background: '#ffffff', border: '1px solid var(--panel-border)', borderRadius: '6px', marginTop: '8px' }}>
-          <GitVisualizer refreshTrigger={messages.length} />
-        </div>
       </div>
 
       {showHelp && (
