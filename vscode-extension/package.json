@@ -1,0 +1,91 @@
+{
+  "name": "git-ai-agent",
+  "displayName": "Git AI Agent",
+  "description": "Chat-driven Git automation powered by your local Git AI Agent backend.",
+  "version": "0.0.1",
+  "publisher": "local",
+  "license": "MIT",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "categories": [
+    "Source Control"
+  ],
+  "activationEvents": [
+    "onStartupFinished",
+    "onCommand:git-ai-agent.openChat",
+    "onCommand:git-ai-agent.startBackend",
+    "onView:gitAiAgent.chatView"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "git-ai-agent.openChat",
+        "title": "Git AI Agent: Open Chat"
+      },
+      {
+        "command": "git-ai-agent.startBackend",
+        "title": "Git AI Agent: Start Backend"
+      },
+      {
+        "command": "git-ai-agent.showRepoStatus",
+        "title": "Git AI Agent: Show Repo Status"
+      },
+      {
+        "command": "git-ai-agent.syncPush",
+        "title": "Git AI Agent: Upload / Sync (Push)"
+      }
+    ],
+    "configuration": {
+      "title": "Git AI Agent",
+      "properties": {
+        "gitAiAgent.backend.port": {
+          "type": "number",
+          "default": 8000,
+          "description": "Port for the local Git AI Agent backend (FastAPI/uvicorn)."
+        },
+        "gitAiAgent.backend.pythonPath": {
+          "type": "string",
+          "default": "python",
+          "description": "Python executable used to start the backend (e.g. python, py, or a full path)."
+        },
+        "gitAiAgent.backend.autoStart": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically start the backend when VS Code starts and a workspace is open."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "gitAiAgent",
+          "title": "Git AI Agent",
+          "icon": "media/icon.svg"
+        }
+      ]
+    },
+    "views": {
+      "gitAiAgent": [
+        {
+          "id": "gitAiAgent.chatView",
+          "name": "Chat"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "package": "vsce package",
+    "lint": "tsc -p . --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/vscode": "^1.90.0",
+    "typescript": "^5.6.3",
+    "vsce": "^3.2.1"
+  }
+}
+
