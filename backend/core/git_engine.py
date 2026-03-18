@@ -70,9 +70,11 @@ class GitEngine:
         
         files = []
         if out:
-            for line in out.split('\\n'):
+            for line in out.split('\n'):
                 if len(line) >= 3:
                     state = line[:2].strip()
+                    # git status --porcelain is two status chars + space + path
+                    # e.g. " M backend/main.py" or "?? newfile.txt"
                     path = line[3:].strip()
                     files.append({"state": state, "path": path})
         return {"changed_files": files}

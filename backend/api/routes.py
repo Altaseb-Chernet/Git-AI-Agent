@@ -1,13 +1,21 @@
 from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 from typing import Optional, Dict, Any
+from pathlib import Path
+import os
 
-from core.git_engine import GitEngine
-from core.ai_parser import AIParser
-from core.state_manager import global_state_manager
+# Support both package + cwd execution styles
+try:
+    from backend.core.git_engine import GitEngine  # type: ignore
+    from backend.core.ai_parser import AIParser  # type: ignore
+    from backend.core.state_manager import global_state_manager  # type: ignore
+except Exception:
+    from core.git_engine import GitEngine  # type: ignore
+    from core.ai_parser import AIParser  # type: ignore
+    from core.state_manager import global_state_manager  # type: ignore
 
 router = APIRouter()
-git_engine = GitEngine()
+git_engine = GitEngine(repo_path=os.getenv("GIT_AI_REPO_PATH", "."))
 ai_parser = AIParser()
 
 class ChatRequest(BaseModel):
@@ -162,7 +170,7 @@ async def repo_status():
 class RepoRequest(BaseModel): # Renamed from SetRepoRequest to RepoRequest as per snippet
     path: str
 
-@router.post("/api/set_repo") # Changed endpoint path
+@router.post("/set_repo")
 async def set_repo(request: RepoRequest): # Changed request type to RepoRequest
     """
     Endpoint to change the active git repository path.
@@ -174,7 +182,7 @@ async def set_repo(request: RepoRequest): # Changed request type to RepoRequest
     git_engine.repo_path = str(path.absolute()) # Changed to use instance git_engine
     return {"status": "success", "repo_path": git_engine.repo_path}
 
-@router.get("/api/select_directory")
+@router.get("/select_directory")
 async def select_directory():
     try:
         import tkinter as tk
@@ -219,7 +227,7 @@ async def repo_graph():
             return {"commits": [], "error": err}
             
         commits = []
-        for line in out.strip().split('\\n'):
+        for line in out.strip().split('\n'):
             if not line:
                 continue
             parts = line.split('|', 4)
