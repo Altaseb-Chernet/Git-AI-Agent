@@ -1,0 +1,18 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Run Git AI Agent Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "--extensionDevelopmentPath=${workspaceFolder}\\vscode-extension",
+        "${workspaceFolder}"
+      ],
+      "outFiles": ["${workspaceFolder}\\vscode-extension\\dist\\**\\*.js"],
+      "preLaunchTask": "build-vscode-extension"
+    }
+  ]
+}
+
