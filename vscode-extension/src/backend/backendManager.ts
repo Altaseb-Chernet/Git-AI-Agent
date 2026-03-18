@@ -43,6 +43,10 @@ export class BackendManager {
     return wf ? wf.uri.fsPath : process.cwd();
   }
 
+  private getBackendCwd(): string {
+    return path.join(this.getWorkspaceCwd(), "backend");
+  }
+
   private baseUrl(): string {
     return `http://127.0.0.1:${this.getPort()}`;
   }
@@ -56,17 +60,25 @@ export class BackendManager {
     if (this.starting) return this.starting;
 
     this.starting = (async () => {
-      const cwd = this.getWorkspaceCwd();
+      const workspaceCwd = this.getWorkspaceCwd();
+      const backendCwd = this.getBackendCwd();
       const python = this.getPythonPath();
       const port = String(this.getPort());
 
-      // Run uvicorn from repo root so GitEngine(repo_path=".") points at the workspace.
-      const args = ["-m", "uvicorn", "backend.main:app", "--host", "127.0.0.1", "--port", port];
+      // Run uvicorn from backend/ so legacy imports work, while pointing Git at the workspace root.
+      const args = ["-m", "uvicorn", "main:app", "--host", "127.0.0.1", "--port", port];
       this.outputChannel.appendLine(`[backend] starting: ${python} ${args.join(" ")}`);
-      this.outputChannel.appendLine(`[backend] cwd: ${cwd}`);
+      this.outputChannel.appendLine(`[backend] cwd: ${backendCwd}`);
       this.outputChannel.show(true);
 
-      this.proc = cp.spawn(python, args, { cwd, windowsHide: true });
+      this.proc = cp.spawn(python, args, {
+        cwd: backendCwd,
+        windowsHide: true,
+        env: {
+          ...process.env,
+          GIT_AI_REPO_PATH: workspaceCwd,
+        },
+      });
 
       this.proc.stdout?.on("data", (d) => this.outputChannel.appendLine(String(d).trimEnd()));
       this.proc.stderr?.on("data", (d) => this.outputChannel.appendLine(String(d).trimEnd()));
@@ -125,6 +137,18 @@ export class BackendManager {
       throw new Error(`Chat failed (${res.status}): ${txt}`);
     }
     return (await res.json()) as ChatResponse;
+  }
+
+  async setRepoPath(repoPath: string): Promise<void> {
+    const res = await fetch(`${this.baseUrl()}/api/set_repo`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ path: repoPath }),
+    });
+    if (!res.ok) {
+      const txt = await res.text().catch(() => "");
+      throw new Error(`set_repo failed (${res.status}): ${txt}`);
+    }
   }
 
   async getStatus(): Promise<RepoStatus> {
