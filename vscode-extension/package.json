@@ -76,6 +76,9 @@
     }
   },
   "scripts": {
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run build",
+    "vscode:prepublish": "npm run build",
     "build": "tsc -p .",
     "watch": "tsc -watch -p .",
     "package": "vsce package",
