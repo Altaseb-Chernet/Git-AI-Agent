@@ -1,124 +1,221 @@
 # Git AI Agent
 
-A local desktop assistant that lets you control Git with natural language, while showing a live visual commit graph.
+Git AI Agent is a local-first Git assistant with three interfaces:
+- Web app (React + Vite)
+- Local API backend (FastAPI)
+- VS Code extension (Activity Bar chat)
 
-The app combines:
-- A Tkinter GUI chat interface (`gui_agent.py`)
-- A stateful command router (`automation_engine.py`)
-- A lightweight Git CLI wrapper (`git_tools.py`)
+It helps you run common Git workflows through natural language while still using your local Git installation and repositories.
 
-## What It Does
+## Why This Project
 
-- Understands plain-language Git requests like `upload my code`, `switch to main`, `merge feature-x`, and `status`.
-- Guides users through multi-step flows (for example: initialize repo, add remote URL, then push).
-- Handles merge-conflict pauses and resumes when the user confirms conflicts are resolved.
-- Auto-generates commit messages from local diff structure.
-- Draws recent commit history in a clickable graph (click a node to checkout that commit).
-- Refreshes branch, file-change stats, and Git identity in the sidebar.
+Git AI Agent is designed for developers who want:
+- A faster path for repetitive Git operations
+- A guided chat interface for branch/sync workflows
+- A visual commit graph without leaving their workspace
 
-## Project Structure
+## Current Capabilities
+
+- Repository connection and status inspection
+- Natural-language intent parsing for common Git tasks
+- Guided `upload/sync` flow (stage -> commit -> push)
+- Branch operations (create, switch, list)
+- Remote sync operations (fetch, pull --rebase)
+- History operations (merge, rebase, cherry-pick + abort flows)
+- Commit graph API + frontend visualization
+- VS Code sidebar chat powered by the same backend
+
+## Architecture
+
+```text
+User Interfaces
+  |- frontend/ (React web app)
+  |- vscode-extension/ (VS Code chat view)
+  |- gui_agent.py (legacy Tkinter UI)
+
+Backend
+  |- backend/main.py (FastAPI app)
+  |- backend/api/routes.py (chat + repo + graph endpoints)
+  |- backend/core/ai_parser.py (heuristic NLP intent parser)
+  |- backend/core/git_engine.py (safe Git subprocess wrapper)
+  |- backend/core/state_manager.py (multi-step chat state)
+```
+
+## Repository Layout
 
 ```text
 .
-|- backend/               # FastAPI backend for intent parsing + Git subprocesses
-|  |- main.py             # FastAPI entry point
-|  |- api/                # API routes
-|  |- core/               # Git engine, State manager, AI parser
-|- frontend/              # Vite + React Modern GUI
-|  |- src/components/     # ChatInterface, RepoConnector, GitLogs
-|- agent.py               # Legacy CLI entry point (not main UX path)
-|- gui_agent.py           # Legacy Tkinter GUI 
-|- automation_engine.py   # Legacy State machine flows
-|- git_tools.py           # Legacy Git helpers
+|- backend/
+|  |- main.py
+|  |- requirements.txt
+|  |- api/routes.py
+|  |- core/
+|- frontend/
+|  |- package.json
+|  |- src/
+|- vscode-extension/
+|  |- package.json
+|  |- src/
+|- gui_agent.py                 # legacy desktop UI
+|- automation_engine.py         # legacy engine
+|- git_tools.py                 # legacy helpers
+|- USER_MANUAL.md
 ```
 
-## Requirements
+## Prerequisites
 
 - Python 3.10+
-- Node.js & npm (for the frontend)
+- Node.js 18+
 - Git installed and available on `PATH`
-- A local Git repository (or let the assistant initialize one)
+- A local Git repository to operate on
 
 ## Quick Start (Web App)
 
-1. **Start the Backend:**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   uvicorn main:app --reload --port 8000
-   ```
+1. Start backend:
 
-2. **Start the Frontend:**
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+```bash
+cd backend
+pip install -r requirements.txt
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+```
 
-3. Open your browser to the local URL provided by Vite (usually `http://localhost:5173`).
-4. Wait for the Repository Status panel to connect.
-5. Use the Chat box to start executing natural language Git commands!
+2. Start frontend in another terminal:
 
-## Supported Commands
+```bash
+cd frontend
+npm install
+npm run dev
+```
 
-The parser is phrase-based, so close variants usually work.
+3. Open the Vite URL (usually `http://localhost:5173`).
+4. In the app, choose your repository path from `Repository & Status`.
 
-- `upload`, `sync`, `save my changes`
-- `status`, `what changed`
-- `commit`, `record changes`
-- `create branch <name>`, `new branch`
-- `checkout <name>`, `switch to <name>`
-- `merge <name>`
-- `stash`, `stash pop`
-- `config`, `who am i`, `set my name`
-- `help`
-- `clear`, `cls`
+## Quick Start (VS Code Extension)
 
-## Main Workflow: Upload/Sync
+```bash
+cd vscode-extension
+npm install
+npm run build
+```
 
-`upload` or `sync` triggers a guided flow:
-1. Generate a commit message from current changes.
-2. Stage and commit.
-3. Pull from `origin/<current-branch>`.
-4. If conflicts exist, pause and wait for `resolved`.
-5. Push to `origin/<current-branch>`.
+Then press `F5` in VS Code to launch an Extension Development Host.
 
-If no Git repo exists, it offers initialization.
-If no remote exists, it asks for a remote URL and can push `main`.
+Extension settings:
+- `gitAiAgent.backend.port` (default: `8000`)
+- `gitAiAgent.backend.pythonPath` (default: `python`)
+- `gitAiAgent.backend.autoStart` (default: `true`)
 
-## How Commit Messages Are Generated
+## Natural Language Commands (Implemented)
 
-Commit messages are heuristic, not LLM-based:
-- It inspects `git diff` and `git diff --cached`.
-- Extracts changed file paths using regex.
-- Builds a template message depending on file count.
+Status and discovery:
+- `status`, `what changed`, `check`
+- `list branches`, `show branches`
+- `fetch`
+- `pull`
 
-This is fast and local, but not semantically deep.
+Branching:
+- `create branch <name>`
+- `switch to <name>`
+
+Sync flow:
+- `upload`, `sync`, `push`, `publish`
+
+History operations:
+- `merge <branch>`
+- `rebase onto <branch>`
+- `abort rebase`
+- `cherry-pick <commit-hash>`
+- `abort cherry-pick`
+
+## Upload/Sync Behavior
+
+When you send an upload intent, backend flow is:
+1. Verify repository exists
+2. Verify `origin` remote exists (asks for URL if missing)
+3. `git add .`
+4. Build commit message from staged diff
+5. `git commit -m "..."`
+6. `git push -u origin <current-branch>`
+
+If no changes are staged, it exits safely without pushing.
+
+## API Endpoints
+
+Base path: `/api`
+
+- `POST /chat` - parse intent and execute Git action
+- `GET /status` - repo metadata + categorized working tree state
+- `POST /set_repo` - set active repository path
+- `GET /select_directory` - open native folder chooser
+- `GET /graph` - commit topology for visualization
+
+Health:
+- `GET /` -> welcome message
+
+## Configuration
+
+Frontend:
+- `VITE_API_URL` (optional, defaults to `http://localhost:8000/api`)
+
+Backend:
+- CORS is open (`*`) by default for local development.
+
+## Safety Model
+
+`backend/core/git_engine.py` validates commands before execution:
+- Requires command to start with `git`
+- Allows only a defined list of Git subcommands
+- Uses subprocess with `shell=False`
+
+This reduces command injection risk while keeping the tool local-first.
 
 ## Known Limitations
 
-- Remote logic assumes `origin` as primary remote.
-- Message generation is pattern-based and may produce generic text.
-- Some legacy files (`state_model.py`, `agent.py`) are not aligned with the current GUI-first architecture.
-- No automated test suite is included yet.
+- Intent parser is regex-based and may misread ambiguous phrasing.
+- Commit message generation is currently heuristic (placeholder text style).
+- Pull/merge/rebase/cherry-pick require a clean working tree in many paths.
+- `select_directory` depends on local GUI support (Tkinter dialog).
+- Legacy Tkinter pipeline remains in the repo but is not the main architecture.
 
 ## Troubleshooting
 
-- `fatal: not a git repository`
-  - Open the correct folder, or run `upload` and confirm repo initialization.
-- Push fails with authentication error
-  - Configure your Git credentials/token outside the app (`git` itself handles auth).
-- Wrong branch pushed
-  - The app pushes the current branch returned by `git branch --show-current`.
+Backend not reachable:
+- Confirm backend is running on port `8000`.
+- Check frontend `VITE_API_URL`.
 
-## Extending the Project
+`Not a git repository`:
+- Use `Repository & Status` to point to a valid local repo.
 
-Good upgrade points:
-- Replace heuristic commit generation in `generate_commit_message()` with an LLM provider.
-- Add multi-remote support (`origin` + `upstream` workflows).
-- Add automated tests around `AutomationEngine.process()` state transitions.
-- Add safer undo operations with explicit confirmations for hard resets.
+Push fails:
+- Ensure remote `origin` exists and credentials are configured in Git.
 
-## Safety Notes
+Directory dialog fails:
+- Use manual path input in the repository field.
 
-This tool executes real Git commands in your selected repository. Review prompts before confirming operations like merge, push, or branch creation.
+## Development Notes
+
+Useful local commands:
+
+```bash
+# Backend
+cd backend
+uvicorn main:app --reload --port 8000
+
+# Frontend
+cd frontend
+npm run dev
+npm run build
+
+# VS Code extension
+cd vscode-extension
+npm run build
+npm run watch
+```
+
+## Roadmap Ideas
+
+- Replace regex parser with pluggable LLM provider
+- Better commit message generation from semantic diff analysis
+- Add automated tests for parser and route flows
+- Improve multi-remote workflows (`origin` + `upstream`)
+- Add auth-aware PR workflows (GitHub/GitLab)
